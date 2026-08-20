@@ -986,6 +986,7 @@ export default async function AssetWorkspacePage({
             )}
           </div>
         </section>
+      )}
       </div>
     </main>
   );
