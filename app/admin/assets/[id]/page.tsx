@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import TaskCompleteButton from "./TaskCompleteButton";
 import OccupancyPanel from "./OccupancyPanel";
+import InspectionPanel from "./InspectionPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -496,6 +497,25 @@ export default async function AssetWorkspacePage({
     />
   </section>
 )}
+     {activeTab === "inspections" && (
+  <section className="mt-6">
+    <InspectionPanel
+      assetId={asset.id}
+      currentOccupancyStatus={
+        asset.occupancy_status
+      }
+      currentElectricStatus={
+        asset.electric_status
+      }
+      currentWaterStatus={
+        asset.water_status
+      }
+      currentGasStatus={
+        asset.gas_status
+      }
+    />
+  </section>
+)}   
         {activeTab === "overview" && (
 <section className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
           <div className="space-y-6">
