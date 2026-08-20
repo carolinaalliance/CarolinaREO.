@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { createReoAssignment } from "./actions";
 import {
   ArrowLeft,
   Building2,
@@ -62,6 +63,10 @@ const labelClass = "text-sm font-medium text-slate-300";
 export default function NewAssignmentPage() {
   const [activeSection, setActiveSection] =
     useState<SectionKey>("client");
+  const [isSaving, setIsSaving] = useState(false);
+const [submitError, setSubmitError] = useState("");
+const [createdAssetNumber, setCreatedAssetNumber] =
+  useState("");
 
   const [formData, setFormData] = useState({
     institutionName: "",
@@ -130,16 +135,54 @@ export default function NewAssignmentPage() {
     }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
 
-    console.log("New Carolina REO Assignment:", formData);
+  setSubmitError("");
+  setCreatedAssetNumber("");
 
-    alert(
-      "Assignment intake form is ready. Next we will connect this button to Supabase."
+  if (!formData.institutionName.trim()) {
+    setActiveSection("client");
+    setSubmitError(
+      "Institution Name is required before creating the assignment."
     );
+    return;
   }
 
+  if (!formData.address.trim()) {
+    setActiveSection("asset");
+    setSubmitError(
+      "Property Address is required before creating the assignment."
+    );
+    return;
+  }
+
+  try {
+    setIsSaving(true);
+
+    const result = await createReoAssignment(formData);
+
+    if (!result.success) {
+      setSubmitError(
+        result.error ||
+          "The assignment could not be created."
+      );
+      return;
+    }
+
+    setCreatedAssetNumber(
+      result.assetNumber || "Assignment Created"
+    );
+  } catch (error) {
+    console.error(error);
+
+    setSubmitError(
+      "An unexpected error occurred while creating the assignment."
+    );
+  } finally {
+    setIsSaving(false);
+  }
+}
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <header className="border-b border-white/10 bg-slate-950/95">
@@ -207,6 +250,49 @@ export default function NewAssignmentPage() {
 
           {/* MAIN FORM */}
           <section>
+            {submitError && (
+  <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-5">
+    <div className="font-semibold text-red-300">
+      Assignment could not be created
+    </div>
+
+    <div className="mt-1 text-sm text-red-200/80">
+      {submitError}
+    </div>
+  </div>
+)}
+
+{createdAssetNumber && (
+  <div className="mb-6 rounded-2xl border border-green-500/30 bg-green-500/10 p-6">
+    <div className="flex items-start gap-4">
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-500/15">
+        <CheckCircle2 className="h-6 w-6 text-green-400" />
+      </div>
+
+      <div>
+        <div className="text-sm font-semibold uppercase tracking-[0.18em] text-green-400">
+          Assignment Created
+        </div>
+
+        <div className="mt-1 text-2xl font-bold">
+          {createdAssetNumber}
+        </div>
+
+        <p className="mt-2 text-sm text-slate-400">
+          The asset record, initial activity history, and SLA tasks
+          have been created successfully.
+        </p>
+
+        <Link
+          href="/admin"
+          className="mt-4 inline-flex items-center rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold hover:bg-green-500"
+        >
+          Return to Command Center
+        </Link>
+      </div>
+    </div>
+  </div>
+)}
             <div className="mb-6 rounded-2xl border border-green-500/20 bg-gradient-to-r from-green-600/10 to-transparent p-6">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-500/10">
@@ -930,12 +1016,22 @@ export default function NewAssignmentPage() {
                 </button>
 
                 <button
-                  type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-3 text-sm font-semibold transition hover:bg-green-500"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Create Assignment
-                </button>
+  type="submit"
+  disabled={isSaving}
+  className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-3 text-sm font-semibold transition hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  {isSaving ? (
+    <>
+      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+      Creating Assignment...
+    </>
+  ) : (
+    <>
+      <CheckCircle2 className="h-4 w-4" />
+      Create Assignment
+    </>
+  )}
+</button>
               </div>
             </div>
           </section>
