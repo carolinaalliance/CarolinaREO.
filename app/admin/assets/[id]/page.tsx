@@ -756,63 +756,63 @@ export default async function AssetWorkspacePage({
                 </div>
               ) : (
                 <div className="divide-y divide-white/5">
-                  {openTasks.slice(0, 8).map((task) => {
-                    const overdue =
-                      task.due_at &&
-                      new Date(task.due_at).getTime() <
-                        Date.now();
+                 {openTasks.slice(0, 8).map((task) => {
+  const overdue =
+    task.due_at &&
+    new Date(task.due_at).getTime() < Date.now();
 
-                    return (
-                      <div
-  key={task.id}
-  className="px-6 py-4"
->
-  <div className="flex items-start justify-between gap-4">
-    <div className="min-w-0">
-      <div
-        className={`text-sm font-medium ${
-          overdue
-            ? "text-red-300"
-            : "text-slate-200"
-        }`}
-      >
-        {task.title}
-      </div>
-
-      <div className="mt-1 text-xs capitalize text-slate-600">
-        {stageLabel(task.workflow_stage)}
-      </div>
-
-      {task.description && (
-        <div className="mt-2 text-xs leading-5 text-slate-500">
-          {task.description}
-        </div>
-      )}
-
-      <TaskCompleteButton
-        assetId={asset.id}
-        taskId={task.id}
-      />
-    </div>
-
+  return (
     <div
-      className={`shrink-0 text-right text-xs ${
-        overdue
-          ? "font-semibold text-red-400"
-          : "text-slate-500"
-      }`}
+      key={task.id}
+      className="px-6 py-4"
     >
-      {formatDateTime(task.due_at)}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div
+            className={`text-sm font-medium ${
+              overdue
+                ? "text-red-300"
+                : "text-slate-200"
+            }`}
+          >
+            {task.title}
+          </div>
 
-      {overdue && (
-        <div className="mt-1 text-[10px] uppercase tracking-wider text-red-500">
-          Overdue
+          <div className="mt-1 text-xs capitalize text-slate-600">
+            {stageLabel(task.workflow_stage)}
+          </div>
+
+          {task.description && (
+            <div className="mt-2 text-xs leading-5 text-slate-500">
+              {task.description}
+            </div>
+          )}
+
+          <TaskCompleteButton
+            assetId={asset.id}
+            taskId={task.id}
+          />
         </div>
-      )}
+
+        <div
+          className={`shrink-0 text-right text-xs ${
+            overdue
+              ? "font-semibold text-red-400"
+              : "text-slate-500"
+          }`}
+        >
+          {formatDateTime(task.due_at)}
+
+          {overdue && (
+            <div className="mt-1 text-[10px] uppercase tracking-wider text-red-500">
+              Overdue
+            </div>
+          )}
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-                  })}
+  );
+})} 
                 </div>
               )}
             </div>
