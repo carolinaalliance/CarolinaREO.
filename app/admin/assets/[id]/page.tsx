@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import TaskCompleteButton from "./TaskCompleteButton";
+import OccupancyPanel from "./OccupancyPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -121,32 +122,37 @@ const lifecycle = [
 ];
 
 const workspaceSections = [
-  ["Overview", Home],
-  ["Assignment", ClipboardCheck],
-  ["Occupancy", UserRound],
-  ["Inspections", ShieldCheck],
-  ["Securing", KeyRound],
-  ["Preservation", Wrench],
-  ["Valuation / BPO", TrendingUp],
-  ["Marketing", Landmark],
-  ["Offers", Gavel],
-  ["Closing", CheckCircle2],
-  ["Tasks / SLA", ListChecks],
-  ["Work Orders", Wrench],
-  ["Vendors", Users],
-  ["Documents", FileText],
-  ["Expenses", Receipt],
-  ["Communications", MessageSquare],
-  ["Activity History", Clock3],
+  ["overview", "Overview", Home],
+  ["assignment", "Assignment", ClipboardCheck],
+  ["occupancy", "Occupancy", UserRound],
+  ["inspections", "Inspections", ShieldCheck],
+  ["securing", "Securing", KeyRound],
+  ["preservation", "Preservation", Wrench],
+  ["valuation", "Valuation / BPO", TrendingUp],
+  ["marketing", "Marketing", Landmark],
+  ["offers", "Offers", Gavel],
+  ["closing", "Closing", CheckCircle2],
+  ["tasks", "Tasks / SLA", ListChecks],
+  ["work-orders", "Work Orders", Wrench],
+  ["vendors", "Vendors", Users],
+  ["documents", "Documents", FileText],
+  ["expenses", "Expenses", Receipt],
+  ["communications", "Communications", MessageSquare],
+  ["activity", "Activity History", Clock3],
 ];
 
 export default async function AssetWorkspacePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
+  const { tab } = await searchParams;
 
+  const activeTab = tab || "overview";
+  
   const supabase = getSupabase();
 
   const [
@@ -446,29 +452,52 @@ export default async function AssetWorkspacePage({
         {/* WORKSPACE NAVIGATION */}
         <section className="mt-6">
           <div className="flex gap-2 overflow-x-auto pb-2">
-            {workspaceSections.map(([label, Icon], index) => {
-              const SectionIcon = Icon as typeof Home;
+           {workspaceSections.map(
+  ([key, label, Icon]) => {
+    const SectionIcon =
+      Icon as typeof Home;
 
-              return (
-                <button
-                  key={label as string}
-                  type="button"
-                  className={`flex shrink-0 items-center gap-2 rounded-xl border px-4 py-2.5 text-sm ${
-                    index === 0
-                      ? "border-green-500/30 bg-green-500/10 text-green-400"
-                      : "border-white/10 bg-white/[0.025] text-slate-400"
-                  }`}
-                >
-                  <SectionIcon className="h-4 w-4" />
-                  {label as string}
-                </button>
-              );
-            })}
+    const selected =
+      activeTab === key;
+
+    return (
+      <Link
+        key={key as string}
+        href={`/admin/assets/${asset.id}?tab=${key}`}
+        className={`flex shrink-0 items-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition ${
+          selected
+            ? "border-green-500/30 bg-green-500/10 text-green-400"
+            : "border-white/10 bg-white/[0.025] text-slate-400 hover:bg-white/[0.05] hover:text-white"
+        }`}
+      >
+        <SectionIcon className="h-4 w-4" />
+        {label as string}
+      </Link>
+    );
+  }
+)}
           </div>
         </section>
 
         {/* MAIN WORKSPACE GRID */}
-        <section className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
+        {activeTab === "occupancy" && (
+  <section className="mt-6">
+    <OccupancyPanel
+      assetId={asset.id}
+      currentOccupancyStatus={
+        asset.occupancy_status
+      }
+      currentOccupantName={
+        asset.occupant_name
+      }
+      currentOccupantPhone={
+        asset.occupant_phone
+      }
+    />
+  </section>
+)}
+        {activeTab === "overview" && (
+<section className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
           <div className="space-y-6">
             {/* PROPERTY OVERVIEW */}
             <div className="reo-card rounded-2xl">
