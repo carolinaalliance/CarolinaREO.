@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
+import TaskCompleteButton from "./TaskCompleteButton";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -763,40 +764,54 @@ export default async function AssetWorkspacePage({
 
                     return (
                       <div
-                        key={task.id}
-                        className="px-6 py-4"
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <div
-                              className={`text-sm font-medium ${
-                                overdue
-                                  ? "text-red-300"
-                                  : "text-slate-200"
-                              }`}
-                            >
-                              {task.title}
-                            </div>
+  key={task.id}
+  className="px-6 py-4"
+>
+  <div className="flex items-start justify-between gap-4">
+    <div className="min-w-0">
+      <div
+        className={`text-sm font-medium ${
+          overdue
+            ? "text-red-300"
+            : "text-slate-200"
+        }`}
+      >
+        {task.title}
+      </div>
 
-                            <div className="mt-1 text-xs capitalize text-slate-600">
-                              {stageLabel(
-                                task.workflow_stage
-                              )}
-                            </div>
-                          </div>
+      <div className="mt-1 text-xs capitalize text-slate-600">
+        {stageLabel(task.workflow_stage)}
+      </div>
 
-                          <div
-                            className={`shrink-0 text-right text-xs ${
-                              overdue
-                                ? "font-semibold text-red-400"
-                                : "text-slate-500"
-                            }`}
-                          >
-                            {formatDateTime(task.due_at)}
-                          </div>
-                        </div>
-                      </div>
-                    );
+      {task.description && (
+        <div className="mt-2 text-xs leading-5 text-slate-500">
+          {task.description}
+        </div>
+      )}
+
+      <TaskCompleteButton
+        assetId={asset.id}
+        taskId={task.id}
+      />
+    </div>
+
+    <div
+      className={`shrink-0 text-right text-xs ${
+        overdue
+          ? "font-semibold text-red-400"
+          : "text-slate-500"
+      }`}
+    >
+      {formatDateTime(task.due_at)}
+
+      {overdue && (
+        <div className="mt-1 text-[10px] uppercase tracking-wider text-red-500">
+          Overdue
+        </div>
+      )}
+    </div>
+  </div>
+</div>
                   })}
                 </div>
               )}
