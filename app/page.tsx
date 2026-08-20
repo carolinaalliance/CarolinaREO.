@@ -1,206 +1,173 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  Banknote,
+  BarChart3,
   Building2,
   CheckCircle2,
   ClipboardCheck,
   FileText,
+  Handshake,
   Home,
-  KeyRound,
   Landmark,
+  LineChart,
   MapPin,
+  Monitor,
   ShieldCheck,
-  TrendingUp,
   Users,
   Wrench,
 } from "lucide-react";
 
-const lifecycle = [
-  {
-    number: "01",
-    title: "Assignment",
-    description:
-      "New assets are received, reviewed, documented, and assigned to the appropriate market team.",
-  },
-  {
-    number: "02",
-    title: "Occupancy & Securing",
-    description:
-      "Occupancy is verified and property access, securing, rekeying, and preservation needs are coordinated.",
-  },
-  {
-    number: "03",
-    title: "Inspection",
-    description:
-      "Property condition, exterior, interior, utilities, hazards, and immediate risks are documented.",
-  },
-  {
-    number: "04",
-    title: "Valuation",
-    description:
-      "BPOs, CMAs, market intelligence, repair analysis, and pricing recommendations are prepared.",
-  },
-  {
-    number: "05",
-    title: "Preservation",
-    description:
-      "Repairs, maintenance, debris removal, lawn service, winterization, and vendor work are managed.",
-  },
-  {
-    number: "06",
-    title: "Marketing",
-    description:
-      "Assets are prepared for market, listed, marketed, photographed, and monitored for activity.",
-  },
-  {
-    number: "07",
-    title: "Offer Management",
-    description:
-      "Offers are organized, analyzed, negotiated, documented, and presented to the asset owner.",
-  },
-  {
-    number: "08",
-    title: "Disposition",
-    description:
-      "Contract milestones, closing coordination, final inspections, accounting, and disposition reporting are completed.",
-  },
-];
-
 const services = [
   {
-    icon: ClipboardCheck,
-    title: "REO Asset Management",
+    icon: Building2,
+    title: "Asset Management",
     description:
-      "Centralized oversight of institutional real estate from initial assignment through final disposition.",
+      "Centralized oversight from initial assignment through final disposition.",
   },
   {
-    icon: Home,
+    icon: ShieldCheck,
     title: "Property Inspections",
     description:
-      "Occupancy checks, property condition reporting, photo documentation, and ongoing field inspections.",
+      "Detailed property condition reporting, occupancy verification, and field inspections.",
   },
   {
     icon: Wrench,
     title: "Preservation & Repairs",
     description:
-      "Vendor coordination, bids, maintenance, emergency services, debris removal, and rehabilitation oversight.",
+      "Maintenance, emergency response, vendor management, and rehabilitation oversight.",
   },
   {
-    icon: TrendingUp,
+    icon: BarChart3,
     title: "Valuation & BPO",
     description:
-      "Market-based pricing recommendations, broker price opinions, comparable analysis, and disposition strategy.",
+      "Market-based pricing recommendations, broker opinions, and disposition strategy.",
   },
   {
-    icon: KeyRound,
+    icon: LineChart,
     title: "Property Marketing",
     description:
-      "MLS exposure, digital marketing, showing management, buyer feedback, and activity reporting.",
+      "MLS exposure, digital marketing, showing management, and buyer feedback.",
   },
   {
-    icon: FileText,
+    icon: Handshake,
     title: "Offer & Closing Management",
     description:
-      "Offer presentation, negotiation support, contract administration, closing coordination, and final reporting.",
+      "Offer presentation, negotiation, contract administration, and closing coordination.",
+  },
+  {
+    icon: MapPin,
+    title: "Local Execution",
+    description:
+      "Structured reporting, field activity, and disciplined disposition management.",
+  },
+  {
+    icon: Monitor,
+    title: "Client Portal",
+    description:
+      "Secure access to portfolio status, documents, timelines, approvals, and reporting.",
   },
 ];
 
-const clients = [
+const institutions = [
   "Community Banks",
   "Regional Banks",
   "Credit Unions",
   "Mortgage Servicers",
   "Private Lenders",
   "Institutional Investors",
-  "Asset Managers",
   "Law Firms & Receivers",
+];
+
+const lifecycle = [
+  ["01", "Assignment"],
+  ["02", "Occupancy & Securing"],
+  ["03", "Inspection"],
+  ["04", "Valuation"],
+  ["05", "Preservation"],
+  ["06", "Marketing"],
+  ["07", "Offer Management"],
+  ["08", "Disposition"],
 ];
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      {/* NAVIGATION */}
-      <header className="border-b border-white/10 bg-slate-950/95">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600">
-              <Building2 className="h-6 w-6" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-green-500/30 bg-green-500/10">
+              <Building2 className="h-6 w-6 text-green-400" />
             </div>
 
             <div>
-              <div className="text-xl font-bold tracking-wide">
-                CAROLINA REO
-              </div>
-              <div className="text-[10px] uppercase tracking-[0.28em] text-slate-400">
+              <div className="text-lg font-bold tracking-wide">CAROLINA REO</div>
+              <div className="text-[10px] uppercase tracking-[0.28em] text-slate-500">
                 Asset Management
               </div>
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-8 text-sm text-slate-300 lg:flex">
-            <Link href="#services" className="transition hover:text-white">
+          <nav className="hidden gap-8 text-sm text-slate-300 lg:flex">
+            <Link href="#services" className="hover:text-white">
               Services
             </Link>
-
-            <Link href="#process" className="transition hover:text-white">
-              Asset Lifecycle
+            <Link href="#process" className="hover:text-white">
+              Our Process
             </Link>
-
-            <Link href="#institutions" className="transition hover:text-white">
+            <Link href="#institutions" className="hover:text-white">
               Institutions
             </Link>
-
-            <Link href="#coverage" className="transition hover:text-white">
+            <Link href="#coverage" className="hover:text-white">
               Coverage
             </Link>
           </nav>
 
           <div className="flex items-center gap-3">
             <Link
-              href="/login"
-              className="hidden rounded-lg px-4 py-2 text-sm font-medium text-slate-300 transition hover:text-white sm:block"
+              href="/admin"
+              className="hidden rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5 md:block"
             >
               Client Login
             </Link>
 
             <Link
-              href="/contact"
-              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500"
+              href="/admin/assets/new"
+              className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold transition hover:bg-green-500"
             >
-              Assign an Asset
+              Start Assignment
             </Link>
           </div>
         </div>
       </header>
 
-      {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(37,99,235,0.20),transparent_35%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(34,197,94,0.12),transparent_30%)]" />
 
-        <div className="relative mx-auto grid max-w-7xl gap-14 px-6 py-24 lg:grid-cols-[1.15fr_.85fr] lg:py-32">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-6 py-24 lg:grid-cols-[1fr_.95fr] lg:py-28">
           <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm text-blue-300">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-4 py-2 text-sm text-green-400">
               <Landmark className="h-4 w-4" />
-              Institutional Real Estate Asset Management
+              Institutional Asset Management
             </div>
 
-            <h1 className="max-w-4xl text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
+            <h1 className="max-w-4xl text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl">
               From assignment
-              <span className="text-blue-500"> to disposition.</span>
+              <span className="block text-green-400">to disposition.</span>
             </h1>
 
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-300 md:text-xl">
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-300">
               Carolina REO provides banks, servicers, lenders, investors, and
-              institutional asset owners with accountable local management of
+              institutional asset owners with accountable management of
               distressed, foreclosed, and institutionally owned real estate.
             </p>
 
             <div className="mt-9 flex flex-col gap-4 sm:flex-row">
               <Link
-                href="/contact"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-7 py-4 font-semibold transition hover:bg-blue-500"
+                href="/admin/assets/new"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-7 py-4 font-semibold transition hover:bg-green-500"
               >
-                Submit an Assignment
+                Start New Assignment
                 <ArrowRight className="h-5 w-5" />
               </Link>
 
@@ -212,41 +179,41 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="mt-10 flex flex-wrap gap-6 text-sm text-slate-400">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-blue-500" />
-                Institutional Reporting
-              </div>
-
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-blue-500" />
-                Vendor Oversight
-              </div>
-
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-blue-500" />
-                Disposition Management
-              </div>
+            <div className="mt-10 grid max-w-2xl gap-3 sm:grid-cols-3">
+              {[
+                "Institutional Reporting",
+                "Vendor Oversight",
+                "Disposition Management",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="flex items-center gap-2 text-sm text-slate-400"
+                >
+                  <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  {item}
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* ASSIGNMENT CARD */}
-          <div className="flex items-center">
-            <div className="w-full rounded-3xl border border-white/10 bg-white/[0.04] p-7 shadow-2xl backdrop-blur">
+          <div className="relative">
+            <div className="absolute -inset-8 rounded-full bg-green-500/5 blur-3xl" />
+
+            <div className="reo-card relative overflow-hidden rounded-3xl p-7">
               <div className="flex items-center justify-between border-b border-white/10 pb-5">
                 <div>
-                  <p className="text-sm text-slate-400">Asset Management</p>
-                  <h2 className="mt-1 text-2xl font-semibold">
+                  <div className="text-sm text-green-400">Live Asset Workflow</div>
+                  <div className="mt-1 text-2xl font-semibold">
                     Assignment Control
-                  </h2>
+                  </div>
                 </div>
 
                 <div className="rounded-xl bg-green-500/10 p-3">
-                  <ShieldCheck className="h-6 w-6 text-green-400" />
+                  <ClipboardCheck className="h-6 w-6 text-green-400" />
                 </div>
               </div>
 
-              <div className="space-y-4 py-6">
+              <div className="space-y-3 py-6">
                 {[
                   ["Assignment Received", "Complete"],
                   ["Occupancy Verification", "Complete"],
@@ -257,7 +224,7 @@ export default function HomePage() {
                 ].map(([label, status]) => (
                   <div
                     key={label}
-                    className="flex items-center justify-between rounded-xl bg-white/[0.04] px-4 py-3"
+                    className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3"
                   >
                     <span className="text-sm text-slate-300">{label}</span>
 
@@ -267,7 +234,7 @@ export default function HomePage() {
                           ? "bg-green-500/10 text-green-400"
                           : status === "In Progress"
                           ? "bg-blue-500/10 text-blue-400"
-                          : "bg-slate-700/50 text-slate-400"
+                          : "bg-slate-800 text-slate-500"
                       }`}
                     >
                       {status}
@@ -278,18 +245,22 @@ export default function HomePage() {
 
               <div className="grid grid-cols-3 gap-3 border-t border-white/10 pt-5 text-center">
                 <div>
-                  <p className="text-2xl font-semibold">24/7</p>
-                  <p className="mt-1 text-xs text-slate-500">Asset Access</p>
+                  <div className="text-2xl font-semibold">24/7</div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    Portfolio Access
+                  </div>
                 </div>
 
                 <div>
-                  <p className="text-2xl font-semibold">1</p>
-                  <p className="mt-1 text-xs text-slate-500">Unified Record</p>
+                  <div className="text-2xl font-semibold">1</div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    Unified Record
+                  </div>
                 </div>
 
                 <div>
-                  <p className="text-2xl font-semibold">100%</p>
-                  <p className="mt-1 text-xs text-slate-500">Tracked</p>
+                  <div className="text-2xl font-semibold">100%</div>
+                  <div className="mt-1 text-xs text-slate-500">Tracked</div>
                 </div>
               </div>
             </div>
@@ -297,23 +268,29 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* TRUST BAR */}
       <section className="border-y border-white/10 bg-white/[0.02]">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-4 px-6 py-7 text-sm font-medium text-slate-400">
-          {clients.map((client) => (
-            <span key={client}>{client}</span>
-          ))}
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <p className="text-center text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+            Built for institutional asset owners
+          </p>
+
+          <div className="mt-6 grid gap-4 text-center text-sm text-slate-400 sm:grid-cols-2 lg:grid-cols-7">
+            {institutions.map((item) => (
+              <div key={item} className="rounded-lg px-3 py-2">
+                {item}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* SERVICES */}
       <section id="services" className="mx-auto max-w-7xl px-6 py-24">
-        <div className="max-w-3xl">
-          <p className="font-semibold uppercase tracking-widest text-blue-500">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-green-400">
             Asset Management Services
           </p>
 
-          <h2 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">
+          <h2 className="mt-4 text-4xl font-bold tracking-tight">
             One accountable partner throughout the asset lifecycle.
           </h2>
 
@@ -324,22 +301,22 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {services.map((service) => {
             const Icon = service.icon;
 
             return (
               <div
                 key={service.title}
-                className="rounded-2xl border border-white/10 bg-white/[0.03] p-7 transition hover:border-blue-500/40 hover:bg-white/[0.05]"
+                className="reo-card reo-card-hover rounded-2xl p-6"
               >
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10">
-                  <Icon className="h-6 w-6 text-blue-400" />
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-500/10">
+                  <Icon className="h-5 w-5 text-green-400" />
                 </div>
 
-                <h3 className="text-xl font-semibold">{service.title}</h3>
+                <h3 className="mt-5 text-lg font-semibold">{service.title}</h3>
 
-                <p className="mt-3 leading-7 text-slate-400">
+                <p className="mt-3 text-sm leading-6 text-slate-400">
                   {service.description}
                 </p>
               </div>
@@ -348,186 +325,109 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* LIFECYCLE */}
-      <section id="process" className="bg-white/[0.025] py-24">
+      <section
+        id="process"
+        className="border-y border-white/10 bg-white/[0.02] py-24"
+      >
         <div className="mx-auto max-w-7xl px-6">
-          <div className="max-w-3xl">
-            <p className="font-semibold uppercase tracking-widest text-blue-500">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-green-400">
               Assignment to Disposition
             </p>
 
-            <h2 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">
+            <h2 className="mt-4 text-4xl font-bold">
               Every asset. Every milestone. One record.
             </h2>
 
-            <p className="mt-5 text-lg leading-8 text-slate-400">
-              Our workflow is designed around institutional accountability so
-              asset owners can quickly identify what has happened, what is
-              happening now, and what needs to happen next.
+            <p className="mt-5 text-slate-400">
+              Institutional accountability with a complete record of what has
+              happened, what is happening now, and what needs to happen next.
             </p>
           </div>
 
-          <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {lifecycle.map((step) => (
-              <div
-                key={step.number}
-                className="relative rounded-2xl border border-white/10 bg-slate-950 p-6"
-              >
-                <div className="text-sm font-bold tracking-widest text-blue-500">
-                  {step.number}
+          <div className="mt-14 grid gap-5 md:grid-cols-4 lg:grid-cols-8">
+            {lifecycle.map(([number, title]) => (
+              <div key={number} className="text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-green-500/30 bg-green-500/10 font-bold text-green-400">
+                  {number}
                 </div>
 
-                <h3 className="mt-4 text-xl font-semibold">{step.title}</h3>
-
-                <p className="mt-3 text-sm leading-6 text-slate-400">
-                  {step.description}
-                </p>
+                <div className="mt-4 text-sm font-medium text-slate-300">
+                  {title}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* INSTITUTIONS */}
-      <section
-        id="institutions"
-        className="mx-auto grid max-w-7xl gap-14 px-6 py-24 lg:grid-cols-2"
-      >
-        <div>
-          <p className="font-semibold uppercase tracking-widest text-blue-500">
-            Built for Institutions
-          </p>
+      <section id="institutions" className="mx-auto max-w-7xl px-6 py-24">
+        <div className="grid gap-8 lg:grid-cols-2">
+          <div className="reo-card rounded-3xl p-8">
+            <Banknote className="h-9 w-9 text-green-400" />
 
-          <h2 className="mt-4 text-4xl font-bold tracking-tight">
-            Local execution with institutional-level visibility.
-          </h2>
+            <h2 className="mt-6 text-3xl font-bold">
+              Built for institutions of every size.
+            </h2>
 
-          <p className="mt-5 text-lg leading-8 text-slate-400">
-            Whether managing one distressed property or a portfolio of assets,
-            Carolina REO is being built to deliver structured reporting,
-            documented field activity, centralized communication, and
-            disciplined disposition management.
-          </p>
-
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            {clients.map((item) => (
-              <div
-                key={item}
-                className="flex items-center gap-3 rounded-lg bg-white/[0.03] px-4 py-3"
-              >
-                <CheckCircle2 className="h-5 w-5 text-blue-500" />
-                <span className="text-slate-300">{item}</span>
-              </div>
-            ))}
+            <p className="mt-5 leading-7 text-slate-400">
+              From a community bank managing a handful of properties to a
+              regional servicer overseeing a larger portfolio, Carolina REO is
+              being designed to provide consistent operational visibility and
+              execution.
+            </p>
           </div>
-        </div>
 
-        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-blue-600/15 to-transparent p-8">
-          <Users className="h-10 w-10 text-blue-400" />
+          <div className="reo-card rounded-3xl p-8">
+            <Monitor className="h-9 w-9 text-green-400" />
 
-          <h3 className="mt-6 text-2xl font-semibold">
-            Institutional Client Portal
-          </h3>
+            <h2 className="mt-6 text-3xl font-bold">
+              Secure institutional client portal.
+            </h2>
 
-          <p className="mt-4 leading-7 text-slate-400">
-            Our planned secure portal will give authorized clients direct
-            visibility into their portfolio and individual assets.
-          </p>
-
-          <div className="mt-7 space-y-3">
-            {[
-              "Portfolio dashboard",
-              "Asset status and timelines",
-              "Inspection reports and photographs",
-              "BPOs and valuation documents",
-              "Vendor bids and repair approvals",
-              "Expense tracking",
-              "Marketing activity",
-              "Offer comparison",
-              "Contract and closing status",
-              "Final disposition reports",
-            ].map((feature) => (
-              <div key={feature} className="flex gap-3 text-sm text-slate-300">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
-                {feature}
-              </div>
-            ))}
+            <p className="mt-5 leading-7 text-slate-400">
+              Authorized clients will have direct access to asset status,
+              documents, valuations, inspections, repair approvals, offers,
+              closing activity, and portfolio reporting.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* COVERAGE */}
-      <section
-        id="coverage"
-        className="border-y border-white/10 bg-white/[0.025]"
-      >
-        <div className="mx-auto max-w-7xl px-6 py-20">
+      <section id="coverage" className="mx-auto max-w-7xl px-6 pb-24">
+        <div className="rounded-3xl border border-green-500/20 bg-gradient-to-r from-green-600/15 to-transparent p-10">
           <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
             <div>
-              <div className="flex items-center gap-2 text-blue-400">
+              <div className="flex items-center gap-2 text-green-400">
                 <MapPin className="h-5 w-5" />
-                <span className="font-semibold uppercase tracking-widest">
-                  Market Coverage
-                </span>
+                Market Coverage
               </div>
 
               <h2 className="mt-4 text-3xl font-bold">
                 Carolina-based. Institutionally focused.
               </h2>
 
-              <p className="mt-4 max-w-2xl leading-7 text-slate-400">
-                Our platform is being designed to support direct market
-                operations while also allowing scalable regional coverage
-                through qualified local professionals and vendors.
+              <p className="mt-4 max-w-2xl text-slate-400">
+                Built for disciplined local execution with the ability to scale
+                through qualified market professionals and vendor partners.
               </p>
             </div>
 
             <Link
-              href="/contact"
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-500/10 px-6 py-4 font-semibold text-blue-300 transition hover:bg-blue-500/20"
+              href="/admin/assets/new"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-4 font-semibold hover:bg-green-500"
             >
-              Discuss Your Portfolio
+              Start New Assignment
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <div className="rounded-3xl bg-blue-600 px-8 py-14 text-center md:px-14">
-          <h2 className="text-3xl font-bold md:text-4xl">
-            Have an asset that needs attention?
-          </h2>
-
-          <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-blue-100">
-            Start an assignment with Carolina REO and give your team one
-            accountable point of coordination from intake through disposition.
-          </p>
-
-          <Link
-            href="/contact"
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-4 font-semibold text-slate-950 transition hover:bg-blue-50"
-          >
-            Start New Assignment
-            <ArrowRight className="h-5 w-5" />
-          </Link>
-        </div>
-      </section>
-
-      {/* FOOTER */}
       <footer className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 px-6 py-10 md:flex-row">
-          <div>
-            <div className="font-bold">CAROLINA REO</div>
-            <div className="mt-1 text-xs uppercase tracking-widest text-slate-500">
-              Asset Management
-            </div>
-          </div>
-
-          <div className="text-sm text-slate-500">
-            Institutional real estate asset management.
-          </div>
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 px-6 py-8 text-sm text-slate-500 md:flex-row">
+          <div>© 2026 Carolina REO Asset Management</div>
+          <div>Institutional real estate asset management.</div>
         </div>
       </footer>
     </main>
