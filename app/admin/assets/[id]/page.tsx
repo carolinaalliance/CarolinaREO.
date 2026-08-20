@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import TaskCompleteButton from "./TaskCompleteButton";
 import OccupancyPanel from "./OccupancyPanel";
 import InspectionPanel from "./InspectionPanel";
+import SecuringPanel from "./SecuringPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -516,6 +517,25 @@ export default async function AssetWorkspacePage({
     />
   </section>
 )}   
+  {activeTab === "securing" && (
+  <section className="mt-6">
+    <SecuringPanel
+      assetId={asset.id}
+      currentPropertySecured={
+        asset.property_secured
+      }
+      currentRekeyRequired={
+        asset.rekey_required
+      }
+      currentLockboxCode={
+        asset.lockbox_code
+      }
+      currentKeyLocation={
+        asset.key_location
+      }
+    />
+  </section>
+)}      
         {activeTab === "overview" && (
 <section className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
           <div className="space-y-6">
