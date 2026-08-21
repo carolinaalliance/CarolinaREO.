@@ -5,6 +5,7 @@ import TaskCompleteButton from "./TaskCompleteButton";
 import OccupancyPanel from "./OccupancyPanel";
 import InspectionPanel from "./InspectionPanel";
 import SecuringPanel from "./SecuringPanel";
+import BpoPanel from "./BpoPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -532,6 +533,19 @@ export default async function AssetWorkspacePage({
       }
       currentKeyLocation={
         asset.key_location
+      }
+    />
+  </section>
+)}     
+  {activeTab === "valuation" && (
+  <section className="mt-6">
+    <BpoPanel
+      assetId={asset.id}
+      currentOccupancyStatus={
+        asset.occupancy_status
+      }
+      currentListPrice={
+        asset.initial_list_price
       }
     />
   </section>
