@@ -172,53 +172,55 @@ export default function DispositionPanel({
   return (
     <div className="space-y-6">
 
-      {/* FINAL STATUS */}
+     {/* FINAL STATUS */}
 
-      <section className="rounded-2xl border border-green-500/25 bg-gradient-to-r from-green-500/10 to-transparent p-6">
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+<section className="rounded-2xl border border-green-500/25 bg-gradient-to-r from-green-500/10 to-transparent p-6">
+  <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
 
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/15">
-              <CheckCircle2 className="h-6 w-6 text-green-400" />
-            </div>
+    <div className="flex items-start gap-4">
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/15">
+        <CheckCircle2 className="h-6 w-6 text-green-400" />
+      </div>
 
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-green-400">
-                Asset Disposition Complete
-              </div>
+      <div>
+        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-green-400">
+          Asset Disposition Complete
+        </div>
 
-              <h2 className="mt-2 text-2xl font-bold">
-                {asset.property_address}
-              </h2>
+        <h2 className="mt-2 text-2xl font-bold">
+          {asset.property_address}
+        </h2>
 
-              <p className="mt-2 text-sm text-slate-400">
-                This asset has completed the Carolina REO lifecycle from institutional assignment through final disposition.
-              </p>
-            </div>
-          </div>
-
-         <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-  <div className="rounded-xl border border-green-500/20 bg-green-500/[0.06] px-6 py-4 text-right">
-    <div className="text-xs uppercase tracking-[0.15em] text-slate-500">
-      Final Status
+        <p className="mt-2 text-sm text-slate-400">
+          This asset has completed the Carolina REO lifecycle from institutional assignment through final disposition.
+        </p>
+      </div>
     </div>
 
-    <div className="mt-1 text-xl font-bold text-green-400">
-      Disposed
+    <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+      <div className="rounded-xl border border-green-500/20 bg-green-500/[0.06] px-6 py-4 text-right">
+        <div className="text-xs uppercase tracking-[0.15em] text-slate-500">
+          Final Status
+        </div>
+
+        <div className="mt-1 text-xl font-bold text-green-400">
+          Disposed
+        </div>
+      </div>
+
+      <a
+        href={`/api/reo/assets/${assetId}/disposition/pdf`}
+        className="inline-flex items-center justify-center gap-2 rounded-xl border border-green-500/30 bg-green-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-green-500"
+      >
+        <Download className="h-4 w-4" />
+        Generate Final Asset Report PDF
+      </a>
     </div>
+
   </div>
+</section>
 
-  <a
-    href={`/api/reo/assets/${assetId}/disposition/pdf`}
-    className="inline-flex items-center justify-center gap-2 rounded-xl border border-green-500/30 bg-green-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-green-500"
-  >
-    <Download className="h-4 w-4" />
-    Generate Final Asset Report PDF
-  </a>
-</div>
-      </section>
-
-      {/* EXECUTIVE METRICS */}
+{/* EXECUTIVE METRICS */} 
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 
