@@ -2740,3 +2740,505 @@ export async function savePreMarketingReadiness(
     };
   }
 }
+export type MarketingActivationInput = {
+  activationDate: string;
+  listingStatus: string;
+
+  mlsNumber: string;
+  mlsListDate: string;
+
+  listingAgent: string;
+  listingAgentEmail: string;
+  listingAgentPhone: string;
+
+  originalListPrice: string;
+  currentListPrice: string;
+
+  photographyComplete: boolean;
+  signageInstalled: boolean;
+  lockboxActive: boolean;
+
+  mlsActive: boolean;
+  brokerageSiteActive: boolean;
+  syndicationActive: boolean;
+  virtualTourActive: boolean;
+
+  showingInstructions: string;
+  occupantShowingNotes: string;
+
+  totalShowings: string;
+  totalInquiries: string;
+
+  buyerFeedbackSummary: string;
+  marketingSummary: string;
+  clientInstructions: string;
+
+  priceChangeRequested: boolean;
+  proposedPrice: string;
+  clientPriceApprovalStatus: string;
+
+  nextMarketingReviewDate: string;
+  nextAction: string;
+
+  activated: boolean;
+};
+
+function marketingNumber(value: string) {
+  if (!value?.trim()) return null;
+
+  const parsed = Number(
+    value.replace(/[$,]/g, "")
+  );
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
+}
+
+function marketingInteger(value: string) {
+  if (!value?.trim()) return 0;
+
+  const parsed = Number(value);
+
+  return Number.isFinite(parsed)
+    ? Math.max(0, Math.floor(parsed))
+    : 0;
+}
+
+export async function saveMarketingActivation(
+  assetId: string,
+  input: MarketingActivationInput
+) {
+  try {
+    const supabase = getSupabase();
+
+    if (!assetId) {
+      return {
+        success: false,
+        error: "Asset ID is missing.",
+      };
+    }
+
+    if (input.activated) {
+      const missing: string[] = [];
+
+      if (!input.mlsNumber.trim())
+        missing.push("MLS Number");
+
+      if (!input.mlsListDate)
+        missing.push("MLS List Date");
+
+      if (!input.listingAgent.trim())
+        missing.push("Listing Agent");
+
+      if (!input.currentListPrice.trim())
+        missing.push("Current List Price");
+
+      if (!input.mlsActive)
+        missing.push("MLS Active");
+
+      if (!input.photographyComplete)
+        missing.push("Photography Complete");
+
+      if (!input.lockboxActive)
+        missing.push("Lockbox Active");
+
+      if (missing.length > 0) {
+        return {
+          success: false,
+          error:
+            "Listing activation is blocked. Complete: " +
+            missing.join(", "),
+        };
+      }
+    }
+
+    const now = new Date().toISOString();
+
+    const {
+      data: asset,
+      error: assetError,
+    } = await supabase
+      .from("reo_assets")
+      .select(`
+        id,
+        workflow_stage,
+        property_address
+      `)
+      .eq("id", assetId)
+      .single();
+
+    if (assetError || !asset) {
+      throw (
+        assetError ||
+        new Error("Asset could not be found.")
+      );
+    }
+
+    const {
+      data: record,
+      error: recordError,
+    } = await supabase
+      .from("reo_marketing_records")
+      .insert({
+        asset_id: assetId,
+
+        activation_date:
+          input.activationDate || null,
+
+        listing_status:
+          input.listingStatus || "pre_marketing",
+
+        mls_number:
+          input.mlsNumber || null,
+
+        mls_list_date:
+          input.mlsListDate || null,
+
+        listing_agent:
+          input.listingAgent || null,
+
+        listing_agent_email:
+          input.listingAgentEmail || null,
+
+        listing_agent_phone:
+          input.listingAgentPhone || null,
+
+        original_list_price:
+          marketingNumber(
+            input.originalListPrice
+          ),
+
+        current_list_price:
+          marketingNumber(
+            input.currentListPrice
+          ),
+
+        photography_complete:
+          input.photographyComplete,
+
+        signage_installed:
+          input.signageInstalled,
+
+        lockbox_active:
+          input.lockboxActive,
+
+        mls_active:
+          input.mlsActive,
+
+        brokerage_site_active:
+          input.brokerageSiteActive,
+
+        syndication_active:
+          input.syndicationActive,
+
+        virtual_tour_active:
+          input.virtualTourActive,
+
+        showing_instructions:
+          input.showingInstructions || null,
+
+        occupant_showing_notes:
+          input.occupantShowingNotes || null,
+
+        total_showings:
+          marketingInteger(
+            input.totalShowings
+          ),
+
+        total_inquiries:
+          marketingInteger(
+            input.totalInquiries
+          ),
+
+        buyer_feedback_summary:
+          input.buyerFeedbackSummary || null,
+
+        marketing_summary:
+          input.marketingSummary || null,
+
+        client_instructions:
+          input.clientInstructions || null,
+
+        price_change_requested:
+          input.priceChangeRequested,
+
+        proposed_price:
+          marketingNumber(
+            input.proposedPrice
+          ),
+
+        client_price_approval_status:
+          input.clientPriceApprovalStatus || null,
+
+        next_marketing_review_date:
+          input.nextMarketingReviewDate || null,
+
+        next_action:
+          input.nextAction || null,
+
+        activated:
+          input.activated,
+
+        activated_at:
+          input.activated
+            ? now
+            : null,
+
+        updated_at: now,
+      })
+      .select("id")
+      .single();
+
+    if (recordError) {
+      throw recordError;
+    }
+
+    const lifecycle = [
+      "assignment",
+      "occupancy",
+      "securing",
+      "inspection",
+      "valuation",
+      "preservation",
+      "repairs",
+      "pre_marketing",
+      "listed",
+      "offer_review",
+      "under_contract",
+      "closing",
+      "disposed",
+    ];
+
+    const currentStage =
+      asset.workflow_stage || "assignment";
+
+    const currentIndex =
+      lifecycle.indexOf(currentStage);
+
+    const listedIndex =
+      lifecycle.indexOf("listed");
+
+    const newStage =
+      input.activated &&
+      currentIndex < listedIndex
+        ? "listed"
+        : currentStage;
+
+    const updateData: Record<
+      string,
+      unknown
+    > = {
+      workflow_stage: newStage,
+      updated_at: now,
+    };
+
+    if (input.currentListPrice) {
+      updateData.initial_list_price =
+        marketingNumber(
+          input.currentListPrice
+        );
+    }
+
+    if (input.mlsListDate) {
+      updateData.list_date_target =
+        input.mlsListDate;
+    }
+
+    const {
+      error: assetUpdateError,
+    } = await supabase
+      .from("reo_assets")
+      .update(updateData)
+      .eq("id", assetId);
+
+    if (assetUpdateError) {
+      throw assetUpdateError;
+    }
+
+    if (input.activated) {
+      const {
+        data: activationTasks,
+        error: taskLookupError,
+      } = await supabase
+        .from("reo_asset_tasks")
+        .select("id")
+        .eq("asset_id", assetId)
+        .eq(
+          "task_type",
+          "activate_listing"
+        )
+        .eq("status", "open");
+
+      if (taskLookupError) {
+        throw taskLookupError;
+      }
+
+      if (
+        activationTasks &&
+        activationTasks.length > 0
+      ) {
+        const ids =
+          activationTasks.map(
+            (task) => task.id
+          );
+
+        const {
+          error: taskUpdateError,
+        } = await supabase
+          .from("reo_asset_tasks")
+          .update({
+            status: "completed",
+            completed_at: now,
+            updated_at: now,
+          })
+          .in("id", ids);
+
+        if (taskUpdateError) {
+          throw taskUpdateError;
+        }
+      }
+
+      const {
+        data: existingReportTask,
+        error: existingReportTaskError,
+      } = await supabase
+        .from("reo_asset_tasks")
+        .select("id")
+        .eq("asset_id", assetId)
+        .eq(
+          "task_type",
+          "marketing_report"
+        )
+        .eq("status", "open")
+        .limit(1);
+
+      if (existingReportTaskError) {
+        throw existingReportTaskError;
+      }
+
+      if (!existingReportTask?.length) {
+        const dueDate =
+          input.nextMarketingReviewDate
+            ? new Date(
+                `${input.nextMarketingReviewDate}T17:00:00`
+              ).toISOString()
+            : new Date(
+                Date.now() +
+                  7 * 24 * 60 * 60 * 1000
+              ).toISOString();
+
+        const {
+          error: marketingTaskError,
+        } = await supabase
+          .from("reo_asset_tasks")
+          .insert({
+            asset_id: assetId,
+
+            task_type:
+              "marketing_report",
+
+            title:
+              "Prepare Marketing Activity Report",
+
+            description:
+              "Review showing activity, buyer feedback, inquiries, and pricing strategy.",
+
+            workflow_stage:
+              "listed",
+
+            priority: "normal",
+            status: "open",
+
+            due_at: dueDate,
+
+            client_visible: true,
+            is_sla_task: true,
+          });
+
+        if (marketingTaskError) {
+          throw marketingTaskError;
+        }
+      }
+    }
+
+    const {
+      error: activityError,
+    } = await supabase
+      .from("reo_asset_activity")
+      .insert({
+        asset_id: assetId,
+
+        activity_type:
+          input.activated
+            ? "property_listed"
+            : "marketing_record_saved",
+
+        title:
+          input.activated
+            ? "Property Listed"
+            : "Marketing Record Updated",
+
+        description:
+          input.activated
+            ? `Property activated in MLS ${
+                input.mlsNumber
+                  ? `#${input.mlsNumber}`
+                  : ""
+              } at ${
+                input.currentListPrice
+                  ? "$" +
+                    Number(
+                      input.currentListPrice.replace(
+                        /[$,]/g,
+                        ""
+                      )
+                    ).toLocaleString()
+                  : "the approved list price"
+              }.`
+            : "Marketing and listing information was updated.",
+
+        old_stage:
+          currentStage,
+
+        new_stage:
+          newStage,
+
+        client_visible:
+          true,
+      });
+
+    if (activityError) {
+      throw activityError;
+    }
+
+    revalidatePath(
+      `/admin/assets/${assetId}`
+    );
+
+    revalidatePath("/admin");
+
+    return {
+      success: true,
+      marketingId:
+        record.id,
+      workflowStage:
+        newStage,
+      activated:
+        input.activated,
+    };
+  } catch (error) {
+    console.error(
+      "CAROLINA REO MARKETING ERROR:",
+      error
+    );
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to save marketing information.",
+    };
+  }
+}
