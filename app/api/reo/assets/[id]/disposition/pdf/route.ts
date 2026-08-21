@@ -1153,16 +1153,20 @@ row(
 
 row(
   "Client Approved Repair Budget",
-  money(
-    repair?.approved_budget
-  )
+  repair?.approved_budget === null ||
+  repair?.approved_budget === undefined ||
+  repair?.approved_budget === ""
+    ? "Not provided"
+    : money(repair.approved_budget)
 );
 
 row(
   "Final Repair Cost",
-  money(
-    repair?.final_cost
-  )
+  repair?.final_cost === null ||
+  repair?.final_cost === undefined ||
+  repair?.final_cost === ""
+    ? "Not provided"
+    : money(repair.final_cost)
 );
 
 row(
