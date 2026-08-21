@@ -237,13 +237,13 @@ export default async function AssetWorkspacePage({
       <header className="border-b border-white/10 bg-[#050d18]">
         <div className="mx-auto flex max-w-[1700px] items-center justify-between gap-5 px-6 py-4">
           <div className="flex items-center gap-4">
-            <Link
-              href="/admin"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-slate-400 transition hover:bg-white/[0.07] hover:text-white"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-
+           <a
+  href="/admin"
+  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+  title="Back to Operations Command Center"
+>
+  <ArrowLeft className="h-5 w-5" />
+</a>
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-500/10">
                 <Building2 className="h-5 w-5 text-green-400" />
