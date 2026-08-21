@@ -2242,3 +2242,501 @@ export async function saveRepairScope(
     };
   }
 }
+export type PreMarketingInput = {
+  reviewDate: string;
+  reviewedBy: string;
+
+  propertyReady: boolean;
+  repairsComplete: boolean;
+  preservationComplete: boolean;
+  utilitiesReady: boolean;
+  cleaningComplete: boolean;
+  debrisRemoved: boolean;
+
+  photographyReady: boolean;
+  signageReady: boolean;
+  lockboxReady: boolean;
+
+  titleReady: boolean;
+  hoaDocsReady: boolean;
+  listingDocumentsReady: boolean;
+
+  pricingApproved: boolean;
+  recommendedListPrice: string;
+  approvedListPrice: string;
+
+  assignedListingAgent: string;
+  agentEmail: string;
+  agentPhone: string;
+
+  targetListDate: string;
+
+  mlsReady: boolean;
+  mlsNumber: string;
+
+  clientMarketingInstructions: string;
+  listingRemarksNotes: string;
+  photographyNotes: string;
+  readinessNotes: string;
+
+  approvedForMarketing: boolean;
+};
+
+function preMarketingNumber(value: string) {
+  if (!value?.trim()) return null;
+
+  const parsed = Number(
+    value.replace(/[$,]/g, "")
+  );
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
+}
+
+export async function savePreMarketingReadiness(
+  assetId: string,
+  input: PreMarketingInput
+) {
+  try {
+    const supabase = getSupabase();
+
+    if (!assetId) {
+      return {
+        success: false,
+        error: "Asset ID is missing.",
+      };
+    }
+
+    if (!input.reviewDate) {
+      return {
+        success: false,
+        error: "Review date is required.",
+      };
+    }
+
+    const now = new Date().toISOString();
+
+    const {
+      data: asset,
+      error: assetError,
+    } = await supabase
+      .from("reo_assets")
+      .select(`
+        id,
+        workflow_stage,
+        property_address
+      `)
+      .eq("id", assetId)
+      .single();
+
+    if (assetError || !asset) {
+      throw (
+        assetError ||
+        new Error("Asset could not be found.")
+      );
+    }
+
+    // -------------------------------------------------------
+    // APPROVAL GATE
+    // -------------------------------------------------------
+
+    if (input.approvedForMarketing) {
+      const missing: string[] = [];
+
+      if (!input.propertyReady)
+        missing.push("Property Ready");
+
+      if (!input.repairsComplete)
+        missing.push("Repairs Complete");
+
+      if (!input.preservationComplete)
+        missing.push("Preservation Complete");
+
+      if (!input.photographyReady)
+        missing.push("Photography Ready");
+
+      if (!input.titleReady)
+        missing.push("Title Ready");
+
+      if (!input.listingDocumentsReady)
+        missing.push("Listing Documents Ready");
+
+      if (!input.pricingApproved)
+        missing.push("Pricing Approved");
+
+      if (!input.assignedListingAgent.trim())
+        missing.push("Assigned Listing Agent");
+
+      if (!input.targetListDate)
+        missing.push("Target List Date");
+
+      if (!input.approvedListPrice.trim())
+        missing.push("Approved List Price");
+
+      if (missing.length > 0) {
+        return {
+          success: false,
+          error:
+            "Marketing approval is blocked. Complete: " +
+            missing.join(", "),
+        };
+      }
+
+      // Do not approve while important stabilization
+      // tasks remain open.
+      const {
+        data: blockingTasks,
+        error: blockingTaskError,
+      } = await supabase
+        .from("reo_asset_tasks")
+        .select("id, title, task_type")
+        .eq("asset_id", assetId)
+        .eq("status", "open")
+        .in("task_type", [
+          "preservation_review",
+          "preservation_follow_up",
+          "repair_scope",
+        ]);
+
+      if (blockingTaskError) {
+        throw blockingTaskError;
+      }
+
+      if (
+        blockingTasks &&
+        blockingTasks.length > 0
+      ) {
+        return {
+          success: false,
+          error:
+            "Marketing approval is blocked by open task: " +
+            blockingTasks
+              .map((task) => task.title)
+              .join(", "),
+        };
+      }
+    }
+
+    // -------------------------------------------------------
+    // SAVE PRE-MARKETING RECORD
+    // -------------------------------------------------------
+
+    const {
+      data: record,
+      error: recordError,
+    } = await supabase
+      .from("reo_pre_marketing_records")
+      .insert({
+        asset_id: assetId,
+
+        review_date:
+          input.reviewDate,
+
+        reviewed_by:
+          input.reviewedBy || null,
+
+        property_ready:
+          input.propertyReady,
+
+        repairs_complete:
+          input.repairsComplete,
+
+        preservation_complete:
+          input.preservationComplete,
+
+        utilities_ready:
+          input.utilitiesReady,
+
+        cleaning_complete:
+          input.cleaningComplete,
+
+        debris_removed:
+          input.debrisRemoved,
+
+        photography_ready:
+          input.photographyReady,
+
+        signage_ready:
+          input.signageReady,
+
+        lockbox_ready:
+          input.lockboxReady,
+
+        title_ready:
+          input.titleReady,
+
+        hoa_docs_ready:
+          input.hoaDocsReady,
+
+        listing_documents_ready:
+          input.listingDocumentsReady,
+
+        pricing_approved:
+          input.pricingApproved,
+
+        recommended_list_price:
+          preMarketingNumber(
+            input.recommendedListPrice
+          ),
+
+        approved_list_price:
+          preMarketingNumber(
+            input.approvedListPrice
+          ),
+
+        assigned_listing_agent:
+          input.assignedListingAgent || null,
+
+        agent_email:
+          input.agentEmail || null,
+
+        agent_phone:
+          input.agentPhone || null,
+
+        target_list_date:
+          input.targetListDate || null,
+
+        mls_ready:
+          input.mlsReady,
+
+        mls_number:
+          input.mlsNumber || null,
+
+        client_marketing_instructions:
+          input.clientMarketingInstructions || null,
+
+        listing_remarks_notes:
+          input.listingRemarksNotes || null,
+
+        photography_notes:
+          input.photographyNotes || null,
+
+        readiness_notes:
+          input.readinessNotes || null,
+
+        approved_for_marketing:
+          input.approvedForMarketing,
+
+        approved_at:
+          input.approvedForMarketing
+            ? now
+            : null,
+
+        updated_at: now,
+      })
+      .select("id")
+      .single();
+
+    if (recordError) {
+      throw recordError;
+    }
+
+    const lifecycle = [
+      "assignment",
+      "occupancy",
+      "securing",
+      "inspection",
+      "valuation",
+      "preservation",
+      "repairs",
+      "pre_marketing",
+      "listed",
+      "offer_review",
+      "under_contract",
+      "closing",
+      "disposed",
+    ];
+
+    const currentStage =
+      asset.workflow_stage || "assignment";
+
+    const currentIndex =
+      lifecycle.indexOf(currentStage);
+
+    const preMarketingIndex =
+      lifecycle.indexOf("pre_marketing");
+
+    const newStage =
+      input.approvedForMarketing &&
+      currentIndex < preMarketingIndex
+        ? "pre_marketing"
+        : currentStage;
+
+    // -------------------------------------------------------
+    // UPDATE MASTER ASSET
+    // -------------------------------------------------------
+
+    const assetUpdate: Record<
+      string,
+      unknown
+    > = {
+      workflow_stage: newStage,
+      updated_at: now,
+    };
+
+    if (input.targetListDate) {
+      assetUpdate.list_date_target =
+        input.targetListDate;
+    }
+
+    if (input.approvedListPrice) {
+      assetUpdate.initial_list_price =
+        preMarketingNumber(
+          input.approvedListPrice
+        );
+    }
+
+    const {
+      error: assetUpdateError,
+    } = await supabase
+      .from("reo_assets")
+      .update(assetUpdate)
+      .eq("id", assetId);
+
+    if (assetUpdateError) {
+      throw assetUpdateError;
+    }
+
+    // -------------------------------------------------------
+    // CREATE LISTING ACTIVATION TASK
+    // -------------------------------------------------------
+
+    if (input.approvedForMarketing) {
+      const {
+        data: existingTask,
+        error: existingTaskError,
+      } = await supabase
+        .from("reo_asset_tasks")
+        .select("id")
+        .eq("asset_id", assetId)
+        .eq(
+          "task_type",
+          "activate_listing"
+        )
+        .eq("status", "open")
+        .limit(1);
+
+      if (existingTaskError) {
+        throw existingTaskError;
+      }
+
+      if (!existingTask?.length) {
+        const targetDate =
+          input.targetListDate
+            ? new Date(
+                `${input.targetListDate}T17:00:00`
+              ).toISOString()
+            : new Date(
+                Date.now() +
+                  24 * 60 * 60 * 1000
+              ).toISOString();
+
+        const {
+          error: listingTaskError,
+        } = await supabase
+          .from("reo_asset_tasks")
+          .insert({
+            asset_id: assetId,
+
+            task_type:
+              "activate_listing",
+
+            title:
+              "Activate Property Listing",
+
+            description:
+              "Asset is approved for marketing. Complete MLS activation and listing launch.",
+
+            workflow_stage:
+              "pre_marketing",
+
+            priority: "normal",
+            status: "open",
+
+            due_at: targetDate,
+
+            client_visible: true,
+            is_sla_task: true,
+          });
+
+        if (listingTaskError) {
+          throw listingTaskError;
+        }
+      }
+    }
+
+    // -------------------------------------------------------
+    // ACTIVITY HISTORY
+    // -------------------------------------------------------
+
+    const {
+      error: activityError,
+    } = await supabase
+      .from("reo_asset_activity")
+      .insert({
+        asset_id: assetId,
+
+        activity_type:
+          input.approvedForMarketing
+            ? "marketing_approved"
+            : "pre_marketing_review_saved",
+
+        title:
+          input.approvedForMarketing
+            ? "Asset Approved for Marketing"
+            : "Pre-Marketing Review Saved",
+
+        description:
+          input.approvedForMarketing
+            ? `Asset approved for marketing at ${
+                input.approvedListPrice
+                  ? "$" +
+                    Number(
+                      input.approvedListPrice.replace(
+                        /[$,]/g,
+                        ""
+                      )
+                    ).toLocaleString()
+                  : "approved pricing"
+              }.`
+            : "Listing-readiness review was updated.",
+
+        old_stage: currentStage,
+        new_stage: newStage,
+
+        client_visible: true,
+      });
+
+    if (activityError) {
+      throw activityError;
+    }
+
+    revalidatePath(
+      `/admin/assets/${assetId}`
+    );
+
+    revalidatePath("/admin");
+
+    return {
+      success: true,
+      preMarketingId: record.id,
+      workflowStage: newStage,
+      approved:
+        input.approvedForMarketing,
+    };
+  } catch (error) {
+    console.error(
+      "CAROLINA REO PRE-MARKETING ERROR:",
+      error
+    );
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to save pre-marketing review.",
+    };
+  }
+}
