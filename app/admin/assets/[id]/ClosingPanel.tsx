@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -176,6 +177,9 @@ export default function ClosingPanel({
       dispositionNotes: "",
     });
 
+const [loading, setLoading] =
+  useState(true);
+  
   const [saving, setSaving] =
     useState(false);
 
@@ -185,6 +189,316 @@ export default function ClosingPanel({
   const [error, setError] =
     useState("");
 
+  useEffect(() => {
+  let cancelled = false;
+
+  async function loadClosingRecord() {
+    try {
+      const response = await fetch(
+        `/api/reo/assets/${assetId}/closing`,
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
+
+      const result =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error ||
+            "Unable to load closing information."
+        );
+      }
+
+      if (
+        cancelled ||
+        !result.closing
+      ) {
+        return;
+      }
+
+      const record =
+        result.closing;
+
+      setFormData({
+        closingDate:
+          record.closing_date || "",
+
+        closingTime:
+          record.closing_time || "",
+
+        closingLocation:
+          record.closing_location || "",
+
+        acceptedPrice:
+          record.accepted_price !== null &&
+          record.accepted_price !== undefined
+            ? String(
+                record.accepted_price
+              )
+            : "",
+
+        buyerName:
+          record.buyer_name || "",
+
+        financingType:
+          record.financing_type || "",
+
+        attorneyName:
+          record.attorney_name || "",
+
+        titleCompany:
+          record.title_company || "",
+
+        finalWalkthroughComplete:
+          Boolean(
+            record.final_walkthrough_complete
+          ),
+
+        clearToCloseConfirmed:
+          Boolean(
+            record.clear_to_close_confirmed
+          ),
+
+        finalTitleClear:
+          Boolean(
+            record.final_title_clear
+          ),
+
+        settlementStatementReceived:
+          Boolean(
+            record.settlement_statement_received
+          ),
+
+        settlementStatementApproved:
+          Boolean(
+            record.settlement_statement_approved
+          ),
+
+        sellerSigned:
+          Boolean(
+            record.seller_signed
+          ),
+
+        buyerSigned:
+          Boolean(
+            record.buyer_signed
+          ),
+
+        closingCompleted:
+          Boolean(
+            record.closing_completed
+          ),
+
+        grossSalePrice:
+          record.gross_sale_price !== null &&
+          record.gross_sale_price !== undefined
+            ? String(
+                record.gross_sale_price
+              )
+            : "",
+
+        sellerCredits:
+          record.seller_credits !== null &&
+          record.seller_credits !== undefined
+            ? String(
+                record.seller_credits
+              )
+            : "",
+
+        commissionCost:
+          record.commission_cost !== null &&
+          record.commission_cost !== undefined
+            ? String(
+                record.commission_cost
+              )
+            : "",
+
+        attorneyTitleCost:
+          record.attorney_title_cost !== null &&
+          record.attorney_title_cost !== undefined
+            ? String(
+                record.attorney_title_cost
+              )
+            : "",
+
+        taxesProrations:
+          record.taxes_prorations !== null &&
+          record.taxes_prorations !== undefined
+            ? String(
+                record.taxes_prorations
+              )
+            : "",
+
+        hoaCosts:
+          record.hoa_costs !== null &&
+          record.hoa_costs !== undefined
+            ? String(
+                record.hoa_costs
+              )
+            : "",
+
+        repairPreservationCosts:
+          record.repair_preservation_costs !== null &&
+          record.repair_preservation_costs !== undefined
+            ? String(
+                record.repair_preservation_costs
+              )
+            : "",
+
+        otherDeductions:
+          record.other_deductions !== null &&
+          record.other_deductions !== undefined
+            ? String(
+                record.other_deductions
+              )
+            : "",
+
+        fundsReceived:
+          Boolean(
+            record.funds_received
+          ),
+
+        fundingDate:
+          record.funding_date || "",
+
+        fundingReference:
+          record.funding_reference || "",
+
+        deedExecuted:
+          Boolean(
+            record.deed_executed
+          ),
+
+        deedRecorded:
+          Boolean(
+            record.deed_recorded
+          ),
+
+        recordingDate:
+          record.recording_date || "",
+
+        recordingBookPage:
+          record.recording_book_page || "",
+
+        recordingInstrumentNumber:
+          record.recording_instrument_number || "",
+
+        closingDisclosureReceived:
+          Boolean(
+            record.closing_disclosure_received
+          ),
+
+        deedCopyReceived:
+          Boolean(
+            record.deed_copy_received
+          ),
+
+        wireConfirmationReceived:
+          Boolean(
+            record.wire_confirmation_received
+          ),
+
+        finalInvoicePackageComplete:
+          Boolean(
+            record.final_invoice_package_complete
+          ),
+
+        clientClosingPackageComplete:
+          Boolean(
+            record.client_closing_package_complete
+          ),
+
+        utilitiesTransferred:
+          Boolean(
+            record.utilities_transferred
+          ),
+
+        keysReleased:
+          Boolean(
+            record.keys_released
+          ),
+
+        lockboxRemoved:
+          Boolean(
+            record.lockbox_removed
+          ),
+
+        signageRemoved:
+          Boolean(
+            record.signage_removed
+          ),
+
+        mlsClosed:
+          Boolean(
+            record.mls_closed
+          ),
+
+        vendorsNotified:
+          Boolean(
+            record.vendors_notified
+          ),
+
+        fundingIssue:
+          Boolean(
+            record.funding_issue
+          ),
+
+        titleIssue:
+          Boolean(
+            record.title_issue
+          ),
+
+        recordingIssue:
+          Boolean(
+            record.recording_issue
+          ),
+
+        documentIssue:
+          Boolean(
+            record.document_issue
+          ),
+
+        clientHold:
+          Boolean(
+            record.client_hold
+          ),
+
+        legalReviewNeeded:
+          Boolean(
+            record.legal_review_needed
+          ),
+
+        closingNotes:
+          record.closing_notes || "",
+
+        dispositionNotes:
+          record.disposition_notes || "",
+      });
+    } catch (err) {
+      if (!cancelled) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load closing information."
+        );
+      }
+    } finally {
+      if (!cancelled) {
+        setLoading(false);
+      }
+    }
+  }
+
+  loadClosingRecord();
+
+  return () => {
+    cancelled = true;
+  };
+}, [assetId]);
+  
   function updateField<
     K extends keyof ClosingInput
   >(
@@ -333,7 +647,14 @@ export default function ClosingPanel({
       setSaving(false);
     }
   }
-
+if (loading) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#07111f] p-8 text-sm text-slate-400">
+      Loading saved closing workspace...
+    </div>
+  );
+}
+  
   return (
     <div className="space-y-6">
       {error && (
