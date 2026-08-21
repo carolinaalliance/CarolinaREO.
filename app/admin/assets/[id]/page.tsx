@@ -8,6 +8,7 @@ import SecuringPanel from "./SecuringPanel";
 import BpoPanel from "./BpoPanel";
 import PreservationPanel from "./PreservationPanel";
 import RepairPanel from "./RepairPanel";
+import PreMarketingPanel from "./PreMarketingPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -135,6 +136,7 @@ const workspaceSections = [
   ["preservation", "Preservation", Wrench],
   ["repairs", "Repairs", Wrench],
   ["valuation", "Valuation / BPO", TrendingUp],
+  ["pre-marketing", "Pre-Marketing", ClipboardCheck],
   ["marketing", "Marketing", Landmark],
   ["offers", "Offers", Gavel],
   ["closing", "Closing", CheckCircle2],
@@ -551,6 +553,16 @@ export default async function AssetWorkspacePage({
   <section className="mt-6">
     <RepairPanel
       assetId={asset.id}
+    />
+  </section>
+)}   
+ {activeTab === "pre-marketing" && (
+  <section className="mt-6">
+    <PreMarketingPanel
+      assetId={asset.id}
+      currentListPrice={
+        asset.initial_list_price
+      }
     />
   </section>
 )}       
