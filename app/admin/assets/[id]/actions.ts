@@ -1857,3 +1857,388 @@ export async function savePreservationReview(
     };
   }
 }
+export type RepairInput = {
+  scopeDate: string;
+  preparedBy: string;
+
+  scopeSummary: string;
+
+  roofingAmount: string;
+  hvacAmount: string;
+  plumbingAmount: string;
+  electricalAmount: string;
+  structuralAmount: string;
+  interiorAmount: string;
+  exteriorAmount: string;
+  landscapingAmount: string;
+  appliancesAmount: string;
+  otherAmount: string;
+
+  vendor1Name: string;
+  vendor1Bid: string;
+
+  vendor2Name: string;
+  vendor2Bid: string;
+
+  vendor3Name: string;
+  vendor3Bid: string;
+
+  selectedVendor: string;
+
+  clientApprovalStatus: string;
+  approvedBudget: string;
+
+  workStartedDate: string;
+  targetCompletionDate: string;
+  actualCompletionDate: string;
+
+  finalCost: string;
+
+  workStatus: string;
+
+  repairNotes: string;
+  approvalNotes: string;
+  completionNotes: string;
+};
+
+function repairNumber(value: string) {
+  if (!value?.trim()) return 0;
+
+  const number = Number(
+    value.replace(/[$,]/g, "")
+  );
+
+  return Number.isFinite(number)
+    ? number
+    : 0;
+}
+
+export async function saveRepairScope(
+  assetId: string,
+  input: RepairInput
+) {
+  try {
+    const supabase = getSupabase();
+
+    if (!assetId) {
+      return {
+        success: false,
+        error: "Asset ID is missing.",
+      };
+    }
+
+    if (!input.scopeDate) {
+      return {
+        success: false,
+        error: "Scope date is required.",
+      };
+    }
+
+    const now = new Date().toISOString();
+
+    const total =
+      repairNumber(input.roofingAmount) +
+      repairNumber(input.hvacAmount) +
+      repairNumber(input.plumbingAmount) +
+      repairNumber(input.electricalAmount) +
+      repairNumber(input.structuralAmount) +
+      repairNumber(input.interiorAmount) +
+      repairNumber(input.exteriorAmount) +
+      repairNumber(input.landscapingAmount) +
+      repairNumber(input.appliancesAmount) +
+      repairNumber(input.otherAmount);
+
+    const { data: asset, error: assetError } =
+      await supabase
+        .from("reo_assets")
+        .select("id, workflow_stage")
+        .eq("id", assetId)
+        .single();
+
+    if (assetError || !asset) {
+      throw assetError ||
+        new Error("Asset could not be found.");
+    }
+
+    const {
+      data: repair,
+      error: repairError,
+    } = await supabase
+      .from("reo_repair_records")
+      .insert({
+        asset_id: assetId,
+
+        scope_date:
+          input.scopeDate,
+
+        prepared_by:
+          input.preparedBy || null,
+
+        scope_summary:
+          input.scopeSummary || null,
+
+        roofing_amount:
+          repairNumber(
+            input.roofingAmount
+          ),
+
+        hvac_amount:
+          repairNumber(
+            input.hvacAmount
+          ),
+
+        plumbing_amount:
+          repairNumber(
+            input.plumbingAmount
+          ),
+
+        electrical_amount:
+          repairNumber(
+            input.electricalAmount
+          ),
+
+        structural_amount:
+          repairNumber(
+            input.structuralAmount
+          ),
+
+        interior_amount:
+          repairNumber(
+            input.interiorAmount
+          ),
+
+        exterior_amount:
+          repairNumber(
+            input.exteriorAmount
+          ),
+
+        landscaping_amount:
+          repairNumber(
+            input.landscapingAmount
+          ),
+
+        appliances_amount:
+          repairNumber(
+            input.appliancesAmount
+          ),
+
+        other_amount:
+          repairNumber(
+            input.otherAmount
+          ),
+
+        estimated_total: total,
+
+        vendor_1_name:
+          input.vendor1Name || null,
+
+        vendor_1_bid:
+          repairNumber(
+            input.vendor1Bid
+          ),
+
+        vendor_2_name:
+          input.vendor2Name || null,
+
+        vendor_2_bid:
+          repairNumber(
+            input.vendor2Bid
+          ),
+
+        vendor_3_name:
+          input.vendor3Name || null,
+
+        vendor_3_bid:
+          repairNumber(
+            input.vendor3Bid
+          ),
+
+        selected_vendor:
+          input.selectedVendor || null,
+
+        client_approval_status:
+          input.clientApprovalStatus || null,
+
+        approved_budget:
+          repairNumber(
+            input.approvedBudget
+          ),
+
+        work_started_date:
+          input.workStartedDate || null,
+
+        target_completion_date:
+          input.targetCompletionDate || null,
+
+        actual_completion_date:
+          input.actualCompletionDate || null,
+
+        final_cost:
+          repairNumber(
+            input.finalCost
+          ),
+
+        work_status:
+          input.workStatus || "scope",
+
+        repair_notes:
+          input.repairNotes || null,
+
+        approval_notes:
+          input.approvalNotes || null,
+
+        completion_notes:
+          input.completionNotes || null,
+
+        updated_at: now,
+      })
+      .select("id")
+      .single();
+
+    if (repairError) {
+      throw repairError;
+    }
+
+    const lifecycle = [
+      "assignment",
+      "occupancy",
+      "securing",
+      "inspection",
+      "valuation",
+      "preservation",
+      "repairs",
+      "pre_marketing",
+      "listed",
+      "offer_review",
+      "under_contract",
+      "closing",
+      "disposed",
+    ];
+
+    const currentStage =
+      asset.workflow_stage || "assignment";
+
+    const currentIndex =
+      lifecycle.indexOf(currentStage);
+
+    const repairIndex =
+      lifecycle.indexOf("repairs");
+
+    const newStage =
+      currentIndex < repairIndex
+        ? "repairs"
+        : currentStage;
+
+    const { error: assetUpdateError } =
+      await supabase
+        .from("reo_assets")
+        .update({
+          workflow_stage: newStage,
+
+          repair_estimate: total,
+
+          updated_at: now,
+        })
+        .eq("id", assetId);
+
+    if (assetUpdateError) {
+      throw assetUpdateError;
+    }
+
+    const {
+      data: repairTasks,
+      error: taskLookupError,
+    } = await supabase
+      .from("reo_asset_tasks")
+      .select("id")
+      .eq("asset_id", assetId)
+      .eq("task_type", "repair_scope")
+      .eq("status", "open");
+
+    if (taskLookupError) {
+      throw taskLookupError;
+    }
+
+    if (
+      repairTasks &&
+      repairTasks.length > 0
+    ) {
+      const ids =
+        repairTasks.map(
+          (task) => task.id
+        );
+
+      const { error: taskUpdateError } =
+        await supabase
+          .from("reo_asset_tasks")
+          .update({
+            status: "completed",
+            completed_at: now,
+            updated_at: now,
+          })
+          .in("id", ids);
+
+      if (taskUpdateError) {
+        throw taskUpdateError;
+      }
+    }
+
+    const { error: activityError } =
+      await supabase
+        .from("reo_asset_activity")
+        .insert({
+          asset_id: assetId,
+
+          activity_type:
+            "repair_scope_completed",
+
+          title:
+            "Repair Scope and Estimate Completed",
+
+          description:
+            `Repair scope prepared. Estimated total: $${total.toLocaleString()}.`,
+
+          old_stage:
+            currentStage,
+
+          new_stage:
+            newStage,
+
+          client_visible:
+            true,
+        });
+
+    if (activityError) {
+      throw activityError;
+    }
+
+    revalidatePath(
+      `/admin/assets/${assetId}`
+    );
+
+    revalidatePath("/admin");
+
+    return {
+      success: true,
+      repairId:
+        repair.id,
+      estimatedTotal:
+        total,
+      workflowStage:
+        newStage,
+    };
+  } catch (error) {
+    console.error(
+      "CAROLINA REO REPAIR ERROR:",
+      error
+    );
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to save repair scope.",
+    };
+  }
+}
