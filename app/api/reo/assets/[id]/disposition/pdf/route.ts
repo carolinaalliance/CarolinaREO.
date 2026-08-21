@@ -232,15 +232,16 @@ export async function GET(
     const supabase =
       getSupabase();
 
-    const [
-      assetResult,
-      closingResult,
-      contractResult,
-      marketingResult,
-      offerResult,
-      activityResult,
-      taskResult,
-    ] = await Promise.all([
+   const [
+  assetResult,
+  closingResult,
+  contractResult,
+  marketingResult,
+  offerResult,
+  repairResult,
+  activityResult,
+  taskResult,
+] = await Promise.all([
       supabase
   .from("reo_assets")
   .select(`
@@ -296,6 +297,16 @@ export async function GET(
         .limit(1)
         .maybeSingle(),
 
+supabase
+  .from("reo_repair_records")
+  .select("*")
+  .eq("asset_id", assetId)
+  .order("created_at", {
+    ascending: false,
+  })
+  .limit(1)
+  .maybeSingle(),
+     
       supabase
         .from("reo_asset_activity")
         .select("*")
@@ -347,6 +358,12 @@ export async function GET(
       throw offerResult.error;
     }
 
+    if (
+  repairResult.error
+) {
+  throw repairResult.error;
+}
+
     if (activityResult.error) {
       throw activityResult.error;
     }
@@ -376,6 +393,9 @@ export async function GET(
 
     const offer =
       offerResult.data;
+
+    const repair =
+  repairResult.data;
 
     const activities =
       activityResult.data || [];
@@ -1124,9 +1144,31 @@ heading(
 );
 
 row(
-  "Repair / Preservation Costs",
+  "Estimated Repair Scope",
   money(
-    repairPreservationCosts
+    repair?.estimated_total ??
+      asset.repair_estimate
+  )
+);
+
+row(
+  "Client Approved Repair Budget",
+  money(
+    repair?.approved_budget
+  )
+);
+
+row(
+  "Final Repair Cost",
+  money(
+    repair?.final_cost
+  )
+);
+
+row(
+  "Repair / Preservation Cost at Closing",
+  money(
+    closing?.repair_preservation_costs
   )
 );
 
