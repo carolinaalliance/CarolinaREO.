@@ -12,6 +12,7 @@ import PreMarketingPanel from "./PreMarketingPanel";
 import MarketingPanel from "./MarketingPanel";
 import OfferPanel from "./OfferPanel";
 import UnderContractPanel from "./UnderContractPanel";
+import ClosingPanel from "./ClosingPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -594,6 +595,16 @@ export default async function AssetWorkspacePage({
  {activeTab === "under-contract" && (
   <section className="mt-6">
     <UnderContractPanel
+      assetId={asset.id}
+      acceptedPrice={
+        asset.accepted_offer
+      }
+    />
+  </section>
+)}    
+ {activeTab === "closing" && (
+  <section className="mt-6">
+    <ClosingPanel
       assetId={asset.id}
       acceptedPrice={
         asset.accepted_offer
