@@ -9,6 +9,7 @@ import BpoPanel from "./BpoPanel";
 import PreservationPanel from "./PreservationPanel";
 import RepairPanel from "./RepairPanel";
 import PreMarketingPanel from "./PreMarketingPanel";
+import MarketingPanel from "./MarketingPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -559,6 +560,16 @@ export default async function AssetWorkspacePage({
  {activeTab === "pre-marketing" && (
   <section className="mt-6">
     <PreMarketingPanel
+      assetId={asset.id}
+      currentListPrice={
+        asset.initial_list_price
+      }
+    />
+  </section>
+)} 
+ {activeTab === "marketing" && (
+  <section className="mt-6">
+    <MarketingPanel
       assetId={asset.id}
       currentListPrice={
         asset.initial_list_price
