@@ -13,6 +13,7 @@ import MarketingPanel from "./MarketingPanel";
 import OfferPanel from "./OfferPanel";
 import UnderContractPanel from "./UnderContractPanel";
 import ClosingPanel from "./ClosingPanel";
+import DispositionPanel from "./DispositionPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -613,7 +614,16 @@ export default async function AssetWorkspacePage({
       }
     />
   </section>
-)}       
+)}     
+  {activeTab === "disposition" && (
+  <section className="mt-6">
+    <DispositionPanel
+      assetId={
+        asset.id
+      }
+    />
+  </section>
+)}      
   {activeTab === "valuation" && (
   <section className="mt-6">
     <BpoPanel
