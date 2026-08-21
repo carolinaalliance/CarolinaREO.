@@ -18,6 +18,7 @@ import {
   History,
   Landmark,
   TrendingUp,
+  Download,
 } from "lucide-react";
 
 type ReportData = {
@@ -196,18 +197,25 @@ export default function DispositionPanel({
             </div>
           </div>
 
-          <div className="rounded-xl border border-green-500/20 bg-green-500/[0.06] px-6 py-4 text-right">
+         <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+  <div className="rounded-xl border border-green-500/20 bg-green-500/[0.06] px-6 py-4 text-right">
+    <div className="text-xs uppercase tracking-[0.15em] text-slate-500">
+      Final Status
+    </div>
 
-            <div className="text-xs uppercase tracking-[0.15em] text-slate-500">
-              Final Status
-            </div>
+    <div className="mt-1 text-xl font-bold text-green-400">
+      Disposed
+    </div>
+  </div>
 
-            <div className="mt-1 text-xl font-bold text-green-400">
-              Disposed
-            </div>
-
-          </div>
-        </div>
+  <a
+    href={`/api/reo/assets/${assetId}/disposition/pdf`}
+    className="inline-flex items-center justify-center gap-2 rounded-xl border border-green-500/30 bg-green-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-green-500"
+  >
+    <Download className="h-4 w-4" />
+    Generate Final Asset Report PDF
+  </a>
+</div>
       </section>
 
       {/* EXECUTIVE METRICS */}
