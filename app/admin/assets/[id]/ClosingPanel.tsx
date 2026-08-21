@@ -179,6 +179,9 @@ export default function ClosingPanel({
 
 const [loading, setLoading] =
   useState(true);
+
+  const [disposed, setDisposed] =
+  useState(false);
   
   const [saving, setSaving] =
     useState(false);
@@ -221,6 +224,10 @@ const [loading, setLoading] =
 
       const record =
         result.closing;
+
+      setDisposed(
+  Boolean(record.disposed)
+);
 
       setFormData({
         closingDate:
@@ -1467,24 +1474,25 @@ if (loading) {
       </section>
 
       <div className="flex justify-end rounded-2xl border border-white/10 bg-[#07111f] p-5">
-        <button
-          type="button"
-          onClick={
-            handleSave
-          }
-          disabled={
-            saving
-          }
+       <button
+  type="button"
+  onClick={handleSave}
+  disabled={
+    saving ||
+    disposed
+  }
           className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-6 py-3 text-sm font-semibold transition hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Save className="h-4 w-4" />
 
-          {saving
-            ? "Saving..."
-            : readinessPercent === 100 &&
-              !hasException
-            ? "Complete Closing & Dispose Asset"
-            : "Save Closing Workspace"}
+         {disposed
+  ? "Disposition Complete"
+  : saving
+  ? "Saving..."
+  : readinessPercent === 100 &&
+    !hasException
+  ? "Complete Closing & Dispose Asset"
+  : "Save Closing Workspace"}
         </button>
       </div>
     </div>
