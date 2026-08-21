@@ -37,6 +37,7 @@ import {
   UserRound,
   Users,
   Wrench,
+  Archive,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -146,6 +147,7 @@ const workspaceSections = [
   ["offers", "Offers", Gavel],
   ["under-contract", "Under Contract", FileSignature],
   ["closing", "Closing", CheckCircle2],
+  ["disposition", "Disposition", Archive],
   ["tasks", "Tasks / SLA", ListChecks],
   ["work-orders", "Work Orders", Wrench],
   ["vendors", "Vendors", Users],
