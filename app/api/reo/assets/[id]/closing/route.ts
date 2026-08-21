@@ -56,6 +56,75 @@ function dateOrNull(value: unknown) {
   return text || null;
 }
 
+export async function GET(
+  request: Request,
+  context: {
+    params: Promise<{
+      id: string;
+    }>;
+  }
+) {
+  try {
+    const { id: assetId } =
+      await context.params;
+
+    if (!assetId) {
+      return NextResponse.json(
+        {
+          error: "Asset ID is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const supabase =
+      getSupabase();
+
+    const {
+      data: closing,
+      error: closingError,
+    } = await supabase
+      .from("reo_closing_records")
+      .select("*")
+      .eq("asset_id", assetId)
+      .maybeSingle();
+
+    if (closingError) {
+      throw closingError;
+    }
+
+    if (!closing) {
+      return NextResponse.json({
+        success: true,
+        closing: null,
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      closing,
+    });
+  } catch (error) {
+    console.error(
+      "CAROLINA REO CLOSING GET ERROR:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load Closing workspace.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
 export async function POST(
   request: Request,
   context: {
