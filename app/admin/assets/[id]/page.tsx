@@ -6,6 +6,7 @@ import OccupancyPanel from "./OccupancyPanel";
 import InspectionPanel from "./InspectionPanel";
 import SecuringPanel from "./SecuringPanel";
 import BpoPanel from "./BpoPanel";
+import PreservationPanel from "./PreservationPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -537,6 +538,13 @@ export default async function AssetWorkspacePage({
     />
   </section>
 )}     
+ {activeTab === "preservation" && (
+  <section className="mt-6">
+    <PreservationPanel
+      assetId={asset.id}
+    />
+  </section>
+)}       
   {activeTab === "valuation" && (
   <section className="mt-6">
     <BpoPanel
