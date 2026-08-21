@@ -36,13 +36,25 @@ function getSupabase() {
 }
 
 function money(
-  value: number | null | undefined
+  value: number | string | null | undefined
 ) {
   if (
     value === null ||
-    value === undefined
+    value === undefined ||
+    value === ""
   ) {
-    return "-";
+    return "Not provided";
+  }
+
+  const numberValue =
+    Number(value);
+
+  if (
+    !Number.isFinite(
+      numberValue
+    )
+  ) {
+    return "Not provided";
   }
 
   return new Intl.NumberFormat(
@@ -52,17 +64,61 @@ function money(
       currency: "USD",
       maximumFractionDigits: 0,
     }
-  ).format(Number(value));
+  ).format(numberValue);
 }
 
 function date(
   value: string | null | undefined
 ) {
-  if (!value) return "-";
+  if (!value) {
+    return "Not provided";
+  }
 
-  return new Date(
-    `${value}T00:00:00`
-  ).toLocaleDateString("en-US");
+  const raw =
+    String(value).slice(
+      0,
+      10
+    );
+
+  const parsed =
+    new Date(
+      `${raw}T12:00:00`
+    );
+
+  if (
+    Number.isNaN(
+      parsed.getTime()
+    )
+  ) {
+    return String(value);
+  }
+
+  return parsed.toLocaleDateString(
+    "en-US"
+  );
+}
+
+function dateTime(
+  value: string | null | undefined
+) {
+  if (!value) {
+    return "Not provided";
+  }
+
+  const parsed =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      parsed.getTime()
+    )
+  ) {
+    return String(value);
+  }
+
+  return parsed.toLocaleString(
+    "en-US"
+  );
 }
 
 function clean(
@@ -73,10 +129,92 @@ function clean(
     value === undefined ||
     value === ""
   ) {
-    return "-";
+    return "Not provided";
   }
 
   return String(value);
+}
+
+function firstValue(
+  ...values: unknown[]
+) {
+  for (
+    const value of values
+  ) {
+    if (
+      value !== null &&
+      value !== undefined &&
+      String(value).trim() !== ""
+    ) {
+      return String(value);
+    }
+  }
+
+  return "Not provided";
+}
+
+function yesNo(
+  value: unknown
+) {
+  return value
+    ? "Complete"
+    : "Not completed";
+}
+
+function buildLocation(
+  asset: any
+) {
+  let city =
+    String(
+      asset.city || ""
+    ).trim();
+
+  let state =
+    String(
+      asset.state || ""
+    ).trim();
+
+  const zip =
+    String(
+      asset.zip_code || ""
+    ).trim();
+
+  /*
+   * Some existing Carolina REO records have
+   * values such as "Greenville, SC" stored
+   * in the city field. Remove the duplicated
+   * state before building the display line.
+   */
+  if (
+    state &&
+    city
+      .toLowerCase()
+      .endsWith(
+        `, ${state.toLowerCase()}`
+      )
+  ) {
+    city =
+      city.slice(
+        0,
+        -(
+          state.length +
+          2
+        )
+      );
+  }
+
+  return [
+    city,
+    state,
+  ]
+    .filter(Boolean)
+    .join(", ")
+    .concat(
+      zip
+        ? ` ${zip}`
+        : ""
+    ) ||
+    "Location not provided";
 }
 
 export async function GET(
@@ -228,6 +366,150 @@ export async function GET(
     const tasks =
       taskResult.data || [];
 
+const completedTasks =
+  tasks.filter(
+    (task) =>
+      task.status ===
+      "completed"
+  );
+
+const openTasks =
+  tasks.filter(
+    (task) =>
+      task.status ===
+      "open"
+  );
+
+const clientName =
+  firstValue(
+    asset.client_name,
+    asset.institution_name,
+    asset.institution,
+    asset.asset_owner,
+    asset.owner_name,
+    asset.servicer_name,
+    contract?.institution_name,
+    closing?.institution_name
+  );
+
+const clientAssetNumber =
+  firstValue(
+    asset.client_asset_number,
+    asset.asset_number,
+    asset.client_reference_number
+  );
+
+const loanNumber =
+  firstValue(
+    asset.loan_number,
+    asset.servicing_number
+  );
+
+const location =
+  buildLocation(asset);
+
+const assignmentDate =
+  asset.assignment_date;
+
+const dispositionDate =
+  closing?.closing_date ||
+  asset.disposition_date;
+
+let daysInInventory:
+  number | null = null;
+
+if (
+  assignmentDate &&
+  dispositionDate
+) {
+  const start =
+    new Date(
+      `${String(
+        assignmentDate
+      ).slice(
+        0,
+        10
+      )}T12:00:00`
+    );
+
+  const end =
+    new Date(
+      `${String(
+        dispositionDate
+      ).slice(
+        0,
+        10
+      )}T12:00:00`
+    );
+
+  if (
+    !Number.isNaN(
+      start.getTime()
+    ) &&
+    !Number.isNaN(
+      end.getTime()
+    )
+  ) {
+    daysInInventory =
+      Math.max(
+        0,
+        Math.round(
+          (
+            end.getTime() -
+            start.getTime()
+          ) /
+            86400000
+        )
+      );
+  }
+}
+
+const originalListPrice =
+  marketing?.original_list_price ??
+  asset.initial_list_price ??
+  null;
+
+const finalListPrice =
+  marketing?.current_list_price ??
+  asset.initial_list_price ??
+  null;
+
+const acceptedPrice =
+  offer?.accepted_price ??
+  contract?.accepted_price ??
+  asset.accepted_offer ??
+  null;
+
+const finalSalePrice =
+  closing?.gross_sale_price ??
+  acceptedPrice ??
+  null;
+
+const netProceeds =
+  closing?.net_proceeds ??
+  null;
+
+const repairPreservationCosts =
+  closing?.repair_preservation_costs ??
+  null;
+
+const generatedAt =
+  new Date();
+
+const reportId =
+  `REO-${String(
+    asset.id
+  )
+    .replace(
+      /-/g,
+      ""
+    )
+    .slice(
+      0,
+      10
+    )
+    .toUpperCase()}`;
+    
     const pdf =
       await PDFDocument.create();
 
@@ -664,13 +946,6 @@ export async function GET(
     heading(
       "Operational Completion"
     );
-
-    const completedTasks =
-      tasks.filter(
-        (task) =>
-          task.status ===
-          "completed"
-      );
 
     row(
       "Total Tasks",
