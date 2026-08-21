@@ -242,10 +242,20 @@ export async function GET(
       taskResult,
     ] = await Promise.all([
       supabase
-        .from("reo_assets")
-        .select("*")
-        .eq("id", assetId)
-        .single(),
+  .from("reo_assets")
+  .select(`
+    *,
+    reo_clients (
+      id,
+      institution_name,
+      institution_type,
+      primary_contact_name,
+      primary_contact_email,
+      primary_contact_phone
+    )
+  `)
+  .eq("id", assetId)
+  .single(),
 
       supabase
         .from("reo_closing_records")
@@ -348,6 +358,13 @@ export async function GET(
     const asset =
       assetResult.data;
 
+    const client =
+  Array.isArray(
+    asset.reo_clients
+  )
+    ? asset.reo_clients[0]
+    : asset.reo_clients;
+
     const closing =
       closingResult.data;
 
@@ -382,14 +399,11 @@ const openTasks =
 
 const clientName =
   firstValue(
+    client?.institution_name,
     asset.client_name,
     asset.institution_name,
-    asset.institution,
     asset.asset_owner,
-    asset.owner_name,
-    asset.servicer_name,
-    contract?.institution_name,
-    closing?.institution_name
+    asset.servicer_name
   );
 
 const clientAssetNumber =
@@ -842,6 +856,11 @@ row(
   "Institutional Client",
   clientName
 );
+
+  row(
+  "Institution Type",
+  client?.institution_type
+);  
 
 row(
   "Client Asset Number",
