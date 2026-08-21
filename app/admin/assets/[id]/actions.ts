@@ -1106,3 +1106,417 @@ export async function saveInitialPropertyInspection(
     };
   }
 }
+export type BpoInput = {
+  valuationDate: string;
+
+  preparedBy: string;
+  brokerageCompany: string;
+
+  occupancyStatus: string;
+  propertyCondition: string;
+
+  asIsValue: string;
+  repairedValue: string;
+  quickSaleValue: string;
+  recommendedListPrice: string;
+
+  estimatedRepairs: string;
+
+  marketTrend: string;
+  marketingTimeDays: string;
+
+  comp1Address: string;
+  comp1SalePrice: string;
+  comp1Distance: string;
+  comp1Notes: string;
+
+  comp2Address: string;
+  comp2SalePrice: string;
+  comp2Distance: string;
+  comp2Notes: string;
+
+  comp3Address: string;
+  comp3SalePrice: string;
+  comp3Distance: string;
+  comp3Notes: string;
+
+  listing1Address: string;
+  listing1Price: string;
+  listing1Distance: string;
+  listing1Notes: string;
+
+  listing2Address: string;
+  listing2Price: string;
+  listing2Distance: string;
+  listing2Notes: string;
+
+  neighborhoodSummary: string;
+  conditionSummary: string;
+  repairSummary: string;
+  pricingRationale: string;
+  marketingStrategy: string;
+
+  clientRecommendation: string;
+};
+
+function bpoNumber(value: string) {
+  if (!value?.trim()) return null;
+
+  const parsed = Number(
+    value.replace(/[$,]/g, "")
+  );
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
+}
+
+export async function saveInitialBpo(
+  assetId: string,
+  input: BpoInput
+) {
+  try {
+    const supabase = getSupabase();
+
+    if (!assetId) {
+      return {
+        success: false,
+        error: "Asset ID is missing.",
+      };
+    }
+
+    if (!input.valuationDate) {
+      return {
+        success: false,
+        error: "Valuation date is required.",
+      };
+    }
+
+    if (!input.asIsValue) {
+      return {
+        success: false,
+        error: "As-is value is required.",
+      };
+    }
+
+    if (!input.recommendedListPrice) {
+      return {
+        success: false,
+        error:
+          "Recommended list price is required.",
+      };
+    }
+
+    const now = new Date().toISOString();
+
+    const { data: asset, error: assetError } =
+      await supabase
+        .from("reo_assets")
+        .select(
+          "id, workflow_stage, property_address"
+        )
+        .eq("id", assetId)
+        .single();
+
+    if (assetError || !asset) {
+      throw (
+        assetError ||
+        new Error("Asset could not be found.")
+      );
+    }
+
+    const { data: bpo, error: bpoError } =
+      await supabase
+        .from("reo_bpo_reports")
+        .insert({
+          asset_id: assetId,
+
+          bpo_type: "initial",
+
+          valuation_date:
+            input.valuationDate,
+
+          prepared_by:
+            input.preparedBy || null,
+
+          brokerage_company:
+            input.brokerageCompany || null,
+
+          occupancy_status:
+            input.occupancyStatus || null,
+
+          property_condition:
+            input.propertyCondition || null,
+
+          as_is_value:
+            bpoNumber(input.asIsValue),
+
+          repaired_value:
+            bpoNumber(input.repairedValue),
+
+          quick_sale_value:
+            bpoNumber(input.quickSaleValue),
+
+          recommended_list_price:
+            bpoNumber(
+              input.recommendedListPrice
+            ),
+
+          estimated_repairs:
+            bpoNumber(
+              input.estimatedRepairs
+            ),
+
+          market_trend:
+            input.marketTrend || null,
+
+          marketing_time_days:
+            bpoNumber(
+              input.marketingTimeDays
+            ),
+
+          comp_1_address:
+            input.comp1Address || null,
+
+          comp_1_sale_price:
+            bpoNumber(
+              input.comp1SalePrice
+            ),
+
+          comp_1_distance:
+            bpoNumber(
+              input.comp1Distance
+            ),
+
+          comp_1_notes:
+            input.comp1Notes || null,
+
+          comp_2_address:
+            input.comp2Address || null,
+
+          comp_2_sale_price:
+            bpoNumber(
+              input.comp2SalePrice
+            ),
+
+          comp_2_distance:
+            bpoNumber(
+              input.comp2Distance
+            ),
+
+          comp_2_notes:
+            input.comp2Notes || null,
+
+          comp_3_address:
+            input.comp3Address || null,
+
+          comp_3_sale_price:
+            bpoNumber(
+              input.comp3SalePrice
+            ),
+
+          comp_3_distance:
+            bpoNumber(
+              input.comp3Distance
+            ),
+
+          comp_3_notes:
+            input.comp3Notes || null,
+
+          listing_1_address:
+            input.listing1Address || null,
+
+          listing_1_price:
+            bpoNumber(
+              input.listing1Price
+            ),
+
+          listing_1_distance:
+            bpoNumber(
+              input.listing1Distance
+            ),
+
+          listing_1_notes:
+            input.listing1Notes || null,
+
+          listing_2_address:
+            input.listing2Address || null,
+
+          listing_2_price:
+            bpoNumber(
+              input.listing2Price
+            ),
+
+          listing_2_distance:
+            bpoNumber(
+              input.listing2Distance
+            ),
+
+          listing_2_notes:
+            input.listing2Notes || null,
+
+          neighborhood_summary:
+            input.neighborhoodSummary || null,
+
+          condition_summary:
+            input.conditionSummary || null,
+
+          repair_summary:
+            input.repairSummary || null,
+
+          pricing_rationale:
+            input.pricingRationale || null,
+
+          marketing_strategy:
+            input.marketingStrategy || null,
+
+          client_recommendation:
+            input.clientRecommendation || null,
+
+          updated_at: now,
+        })
+        .select("id")
+        .single();
+
+    if (bpoError) {
+      throw bpoError;
+    }
+
+    const currentStage =
+      asset.workflow_stage || "assignment";
+
+    const lifecycle = [
+      "assignment",
+      "occupancy",
+      "securing",
+      "inspection",
+      "valuation",
+      "preservation",
+      "repairs",
+      "pre_marketing",
+      "listed",
+      "offer_review",
+      "under_contract",
+      "closing",
+      "disposed",
+    ];
+
+    const currentIndex =
+      lifecycle.indexOf(currentStage);
+
+    const valuationIndex =
+      lifecycle.indexOf("valuation");
+
+    const newStage =
+      currentIndex < valuationIndex
+        ? "valuation"
+        : currentStage;
+
+    const { error: assetUpdateError } =
+      await supabase
+        .from("reo_assets")
+        .update({
+          workflow_stage: newStage,
+
+          initial_list_price:
+            bpoNumber(
+              input.recommendedListPrice
+            ),
+
+          updated_at: now,
+        })
+        .eq("id", assetId);
+
+    if (assetUpdateError) {
+      throw assetUpdateError;
+    }
+
+    const {
+      data: bpoTasks,
+      error: taskLookupError,
+    } = await supabase
+      .from("reo_asset_tasks")
+      .select("id")
+      .eq("asset_id", assetId)
+      .eq("task_type", "bpo")
+      .eq("status", "open");
+
+    if (taskLookupError) {
+      throw taskLookupError;
+    }
+
+    if (bpoTasks?.length) {
+      const ids = bpoTasks.map(
+        (task) => task.id
+      );
+
+      const { error: taskUpdateError } =
+        await supabase
+          .from("reo_asset_tasks")
+          .update({
+            status: "completed",
+            completed_at: now,
+            updated_at: now,
+          })
+          .in("id", ids);
+
+      if (taskUpdateError) {
+        throw taskUpdateError;
+      }
+    }
+
+    const { error: activityError } =
+      await supabase
+        .from("reo_asset_activity")
+        .insert({
+          asset_id: assetId,
+
+          activity_type:
+            "initial_bpo_completed",
+
+          title:
+            "Initial BPO Completed",
+
+          description:
+            `Initial BPO completed. As-is value: ${
+              input.asIsValue
+            }. Recommended list price: ${
+              input.recommendedListPrice
+            }.`,
+
+          old_stage: currentStage,
+          new_stage: newStage,
+
+          client_visible: true,
+        });
+
+    if (activityError) {
+      throw activityError;
+    }
+
+    revalidatePath(
+      `/admin/assets/${assetId}`
+    );
+
+    revalidatePath("/admin");
+
+    return {
+      success: true,
+      bpoId: bpo.id,
+      workflowStage: newStage,
+    };
+  } catch (error) {
+    console.error(
+      "CAROLINA REO BPO ERROR:",
+      error
+    );
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to save BPO.",
+    };
+  }
+}
