@@ -3242,3 +3242,772 @@ export async function saveMarketingActivation(
     };
   }
 }
+export type OfferInput = {
+  receivedDate: string;
+  receivedTime: string;
+
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone: string;
+
+  buyerAgentName: string;
+  buyerAgentCompany: string;
+  buyerAgentEmail: string;
+  buyerAgentPhone: string;
+
+  offerPrice: string;
+
+  financingType: string;
+  loanAmount: string;
+  downPayment: string;
+
+  earnestMoney: string;
+  dueDiligenceFee: string;
+
+  dueDiligenceDeadline: string;
+  inspectionDeadline: string;
+  financingDeadline: string;
+  appraisalDeadline: string;
+
+  proposedClosingDate: string;
+
+  sellerPaidClosingCosts: string;
+  repairCredit: string;
+  otherConcessions: string;
+
+  commissionCost: string;
+  estimatedSellerCosts: string;
+
+  proofOfFundsReceived: boolean;
+  preapprovalReceived: boolean;
+
+  appraisalContingency: boolean;
+  financingContingency: boolean;
+  inspectionContingency: boolean;
+  saleOfHomeContingency: boolean;
+
+  offerExpiration: string;
+
+  specialTerms: string;
+  buyerNotes: string;
+  internalAnalysis: string;
+
+  clientDecision: string;
+
+  counterPrice: string;
+  counterClosingDate: string;
+  counterTerms: string;
+
+  acceptedPrice: string;
+  acceptedClosingDate: string;
+};
+
+function offerNumber(value: string) {
+  if (!value?.trim()) return null;
+
+  const parsed = Number(
+    value.replace(/[$,]/g, "")
+  );
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
+}
+
+export async function saveOffer(
+  assetId: string,
+  input: OfferInput
+) {
+  try {
+    const supabase = getSupabase();
+
+    if (!assetId) {
+      return {
+        success: false,
+        error: "Asset ID is missing.",
+      };
+    }
+
+    if (!input.receivedDate) {
+      return {
+        success: false,
+        error: "Offer received date is required.",
+      };
+    }
+
+    if (!input.buyerName.trim()) {
+      return {
+        success: false,
+        error: "Buyer name is required.",
+      };
+    }
+
+    if (!input.offerPrice.trim()) {
+      return {
+        success: false,
+        error: "Offer price is required.",
+      };
+    }
+
+    const now = new Date().toISOString();
+
+    const {
+      data: asset,
+      error: assetError,
+    } = await supabase
+      .from("reo_assets")
+      .select(`
+        id,
+        workflow_stage,
+        property_address,
+        initial_list_price
+      `)
+      .eq("id", assetId)
+      .single();
+
+    if (assetError || !asset) {
+      throw (
+        assetError ||
+        new Error("Asset could not be found.")
+      );
+    }
+
+    const offerPrice =
+      offerNumber(input.offerPrice) || 0;
+
+    const sellerClosingCosts =
+      offerNumber(
+        input.sellerPaidClosingCosts
+      ) || 0;
+
+    const repairCredit =
+      offerNumber(input.repairCredit) || 0;
+
+    const otherConcessions =
+      offerNumber(
+        input.otherConcessions
+      ) || 0;
+
+    const commissionCost =
+      offerNumber(input.commissionCost) || 0;
+
+    const estimatedSellerCosts =
+      offerNumber(
+        input.estimatedSellerCosts
+      ) || 0;
+
+    const estimatedNet =
+      offerPrice -
+      sellerClosingCosts -
+      repairCredit -
+      otherConcessions -
+      commissionCost -
+      estimatedSellerCosts;
+
+    let offerStatus = "received";
+
+    if (input.clientDecision === "Accepted") {
+      offerStatus = "accepted";
+    }
+
+    if (input.clientDecision === "Declined") {
+      offerStatus = "declined";
+    }
+
+    if (input.clientDecision === "Countered") {
+      offerStatus = "countered";
+    }
+
+    if (input.clientDecision === "Hold") {
+      offerStatus = "hold";
+    }
+
+    // Generate simple institutional offer number.
+    const offerNumberLabel =
+      `OFF-${new Date()
+        .getFullYear()}-${Date.now()
+        .toString()
+        .slice(-6)}`;
+
+    const {
+      data: offer,
+      error: offerError,
+    } = await supabase
+      .from("reo_offers")
+      .insert({
+        asset_id: assetId,
+
+        offer_number:
+          offerNumberLabel,
+
+        received_date:
+          input.receivedDate,
+
+        received_time:
+          input.receivedTime || null,
+
+        status:
+          offerStatus,
+
+        buyer_name:
+          input.buyerName,
+
+        buyer_email:
+          input.buyerEmail || null,
+
+        buyer_phone:
+          input.buyerPhone || null,
+
+        buyer_agent_name:
+          input.buyerAgentName || null,
+
+        buyer_agent_company:
+          input.buyerAgentCompany || null,
+
+        buyer_agent_email:
+          input.buyerAgentEmail || null,
+
+        buyer_agent_phone:
+          input.buyerAgentPhone || null,
+
+        offer_price:
+          offerPrice,
+
+        financing_type:
+          input.financingType || null,
+
+        loan_amount:
+          offerNumber(input.loanAmount),
+
+        down_payment:
+          offerNumber(input.downPayment),
+
+        earnest_money:
+          offerNumber(input.earnestMoney),
+
+        due_diligence_fee:
+          offerNumber(
+            input.dueDiligenceFee
+          ),
+
+        due_diligence_deadline:
+          input.dueDiligenceDeadline || null,
+
+        inspection_deadline:
+          input.inspectionDeadline || null,
+
+        financing_deadline:
+          input.financingDeadline || null,
+
+        appraisal_deadline:
+          input.appraisalDeadline || null,
+
+        proposed_closing_date:
+          input.proposedClosingDate || null,
+
+        seller_paid_closing_costs:
+          sellerClosingCosts,
+
+        repair_credit:
+          repairCredit,
+
+        other_concessions:
+          otherConcessions,
+
+        commission_cost:
+          commissionCost,
+
+        estimated_seller_costs:
+          estimatedSellerCosts,
+
+        estimated_net_to_seller:
+          estimatedNet,
+
+        proof_of_funds_received:
+          input.proofOfFundsReceived,
+
+        preapproval_received:
+          input.preapprovalReceived,
+
+        appraisal_contingency:
+          input.appraisalContingency,
+
+        financing_contingency:
+          input.financingContingency,
+
+        inspection_contingency:
+          input.inspectionContingency,
+
+        sale_of_home_contingency:
+          input.saleOfHomeContingency,
+
+        offer_expiration:
+          input.offerExpiration
+            ? new Date(
+                input.offerExpiration
+              ).toISOString()
+            : null,
+
+        special_terms:
+          input.specialTerms || null,
+
+        buyer_notes:
+          input.buyerNotes || null,
+
+        internal_analysis:
+          input.internalAnalysis || null,
+
+        client_decision:
+          input.clientDecision || null,
+
+        counter_price:
+          offerNumber(input.counterPrice),
+
+        counter_closing_date:
+          input.counterClosingDate || null,
+
+        counter_terms:
+          input.counterTerms || null,
+
+        accepted_price:
+          input.clientDecision === "Accepted"
+            ? (
+                offerNumber(
+                  input.acceptedPrice
+                ) || offerPrice
+              )
+            : null,
+
+        accepted_closing_date:
+          input.clientDecision === "Accepted"
+            ? (
+                input.acceptedClosingDate ||
+                input.proposedClosingDate ||
+                null
+              )
+            : null,
+
+        accepted_at:
+          input.clientDecision === "Accepted"
+            ? now
+            : null,
+
+        declined_at:
+          input.clientDecision === "Declined"
+            ? now
+            : null,
+
+        updated_at: now,
+      })
+      .select(`
+        id,
+        offer_number
+      `)
+      .single();
+
+    if (offerError) {
+      throw offerError;
+    }
+
+    const lifecycle = [
+      "assignment",
+      "occupancy",
+      "securing",
+      "inspection",
+      "valuation",
+      "preservation",
+      "repairs",
+      "pre_marketing",
+      "listed",
+      "offer_review",
+      "under_contract",
+      "closing",
+      "disposed",
+    ];
+
+    const currentStage =
+      asset.workflow_stage || "listed";
+
+    const currentIndex =
+      lifecycle.indexOf(currentStage);
+
+    let newStage = currentStage;
+
+    if (
+      input.clientDecision === "Accepted"
+    ) {
+      const underContractIndex =
+        lifecycle.indexOf(
+          "under_contract"
+        );
+
+      if (
+        currentIndex <
+        underContractIndex
+      ) {
+        newStage = "under_contract";
+      }
+    } else {
+      const offerReviewIndex =
+        lifecycle.indexOf(
+          "offer_review"
+        );
+
+      if (
+        currentIndex <
+        offerReviewIndex
+      ) {
+        newStage = "offer_review";
+      }
+    }
+
+    // Update master asset stage.
+    const {
+      error: assetUpdateError,
+    } = await supabase
+      .from("reo_assets")
+      .update({
+        workflow_stage:
+          newStage,
+
+        updated_at: now,
+      })
+      .eq("id", assetId);
+
+    if (assetUpdateError) {
+      throw assetUpdateError;
+    }
+
+    // -------------------------------------------------------
+    // OFFER RESPONSE TASK
+    // -------------------------------------------------------
+
+    if (
+      input.clientDecision !==
+      "Accepted" &&
+      input.clientDecision !==
+      "Declined"
+    ) {
+      const {
+        data: existingOfferTask,
+        error: existingOfferTaskError,
+      } = await supabase
+        .from("reo_asset_tasks")
+        .select("id")
+        .eq("asset_id", assetId)
+        .eq(
+          "task_type",
+          "offer_response"
+        )
+        .eq("status", "open")
+        .limit(1);
+
+      if (existingOfferTaskError) {
+        throw existingOfferTaskError;
+      }
+
+      if (!existingOfferTask?.length) {
+        const responseDue =
+          input.offerExpiration
+            ? new Date(
+                input.offerExpiration
+              ).toISOString()
+            : new Date(
+                Date.now() +
+                  24 *
+                    60 *
+                    60 *
+                    1000
+              ).toISOString();
+
+        const {
+          error: taskInsertError,
+        } = await supabase
+          .from("reo_asset_tasks")
+          .insert({
+            asset_id:
+              assetId,
+
+            task_type:
+              "offer_response",
+
+            title:
+              "Review and Respond to Offer",
+
+            description:
+              `${offerNumberLabel}: ${input.buyerName} offered $${offerPrice.toLocaleString()}.`,
+
+            workflow_stage:
+              "offer_review",
+
+            priority:
+              "high",
+
+            status:
+              "open",
+
+            due_at:
+              responseDue,
+
+            client_visible:
+              true,
+
+            is_sla_task:
+              true,
+          });
+
+        if (taskInsertError) {
+          throw taskInsertError;
+        }
+      }
+    }
+
+    // -------------------------------------------------------
+    // ACCEPTED OFFER
+    // -------------------------------------------------------
+
+    if (
+      input.clientDecision ===
+      "Accepted"
+    ) {
+      // Close open offer-response tasks.
+      const {
+        error: completeOfferTaskError,
+      } = await supabase
+        .from("reo_asset_tasks")
+        .update({
+          status:
+            "completed",
+          completed_at:
+            now,
+          updated_at:
+            now,
+        })
+        .eq(
+          "asset_id",
+          assetId
+        )
+        .eq(
+          "task_type",
+          "offer_response"
+        )
+        .eq(
+          "status",
+          "open"
+        );
+
+      if (completeOfferTaskError) {
+        throw completeOfferTaskError;
+      }
+
+      const closingDate =
+        input.acceptedClosingDate ||
+        input.proposedClosingDate;
+
+      const contractTasks: any[] = [
+        {
+          asset_id:
+            assetId,
+
+          task_type:
+            "contract_review",
+
+          title:
+            "Review Executed Contract",
+
+          description:
+            `Review accepted offer ${offerNumberLabel} and confirm all contract deadlines.`,
+
+          workflow_stage:
+            "under_contract",
+
+          priority:
+            "high",
+
+          status:
+            "open",
+
+          due_at:
+            new Date(
+              Date.now() +
+                24 *
+                  60 *
+                  60 *
+                  1000
+            ).toISOString(),
+
+          client_visible:
+            true,
+
+          is_sla_task:
+            true,
+        },
+
+        {
+          asset_id:
+            assetId,
+
+          task_type:
+            "earnest_money_confirmation",
+
+          title:
+            "Confirm Earnest Money Deposit",
+
+          description:
+            "Verify earnest money has been delivered according to the executed contract.",
+
+          workflow_stage:
+            "under_contract",
+
+          priority:
+            "high",
+
+          status:
+            "open",
+
+          due_at:
+            new Date(
+              Date.now() +
+                48 *
+                  60 *
+                  60 *
+                  1000
+            ).toISOString(),
+
+          client_visible:
+            true,
+
+          is_sla_task:
+            true,
+        },
+      ];
+
+      if (closingDate) {
+        contractTasks.push({
+          asset_id:
+            assetId,
+
+          task_type:
+            "closing_preparation",
+
+          title:
+            "Prepare for Closing",
+
+          description:
+            `Coordinate closing scheduled for ${closingDate}.`,
+
+          workflow_stage:
+            "under_contract",
+
+          priority:
+            "normal",
+
+          status:
+            "open",
+
+          due_at:
+            new Date(
+              `${closingDate}T12:00:00`
+            ).toISOString(),
+
+          client_visible:
+            true,
+
+          is_sla_task:
+            true,
+        });
+      }
+
+      const {
+        error: contractTaskError,
+      } = await supabase
+        .from("reo_asset_tasks")
+        .insert(
+          contractTasks
+        );
+
+      if (contractTaskError) {
+        throw contractTaskError;
+      }
+    }
+
+    // -------------------------------------------------------
+    // ACTIVITY HISTORY
+    // -------------------------------------------------------
+
+    const activityTitle =
+      input.clientDecision === "Accepted"
+        ? "Offer Accepted"
+        : input.clientDecision === "Declined"
+        ? "Offer Declined"
+        : input.clientDecision === "Countered"
+        ? "Offer Countered"
+        : "Offer Received";
+
+    const {
+      error: activityError,
+    } = await supabase
+      .from("reo_asset_activity")
+      .insert({
+        asset_id:
+          assetId,
+
+        activity_type:
+          offerStatus === "accepted"
+            ? "offer_accepted"
+            : "offer_received",
+
+        title:
+          activityTitle,
+
+        description:
+          `${offerNumberLabel}: ${input.buyerName} — $${offerPrice.toLocaleString()} offer. Estimated seller net: $${estimatedNet.toLocaleString()}.`,
+
+        old_stage:
+          currentStage,
+
+        new_stage:
+          newStage,
+
+        client_visible:
+          true,
+      });
+
+    if (activityError) {
+      throw activityError;
+    }
+
+    revalidatePath(
+      `/admin/assets/${assetId}`
+    );
+
+    revalidatePath(
+      "/admin"
+    );
+
+    return {
+      success: true,
+      offerId:
+        offer.id,
+      offerNumber:
+        offer.offer_number,
+      estimatedNet:
+        estimatedNet,
+      workflowStage:
+        newStage,
+    };
+  } catch (error) {
+    console.error(
+      "CAROLINA REO OFFER ERROR:",
+      error
+    );
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to save offer.",
+    };
+  }
+}
