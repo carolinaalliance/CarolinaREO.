@@ -200,10 +200,10 @@ export async function POST(
               ? "Yes"
               : "No",
 
-          rekey_required:
-            body.rekeyCompleted
-              ? "No"
-              : "Yes",
+         rekey_required:
+  Boolean(body.rekeyCompleted)
+    ? "No"
+    : "Yes",
 
           lockbox_code:
             body.lockboxCode || null,
