@@ -654,460 +654,966 @@ const reportId =
       y -= 22;
     }
 
-    function row(
-      label: string,
-      value: unknown
+    function wrapText(
+  text: string,
+  maxCharacters = 55
+) {
+  const words =
+    text.split(/\s+/);
+
+  const lines:
+    string[] = [];
+
+  let current = "";
+
+  for (
+    const word of words
+  ) {
+    const proposed =
+      current
+        ? `${current} ${word}`
+        : word;
+
+    if (
+      proposed.length >
+        maxCharacters &&
+      current
     ) {
-      ensureSpace(18);
-
-      page.drawText(
-        `${label}:`,
-        {
-          x: margin,
-          y,
-          size: 9,
-          font: bold,
-          color: gray,
-        }
+      lines.push(
+        current
       );
 
-      page.drawText(
-        clean(value),
-        {
-          x: 210,
-          y,
-          size: 9,
-          font: regular,
-          color: dark,
-        }
-      );
-
-      y -= 16;
+      current =
+        word;
+    } else {
+      current =
+        proposed;
     }
+  }
 
-    // -----------------------------------------
-    // COVER / SUMMARY
-    // -----------------------------------------
+  if (current) {
+    lines.push(current);
+  }
 
-    drawText(
-      "CAROLINA REO",
+  return lines.length
+    ? lines
+    : [""];
+}
+
+function row(
+  label: string,
+  value: unknown
+) {
+  const valueText =
+    clean(value);
+
+  const lines =
+    wrapText(
+      valueText,
+      48
+    );
+
+  const height =
+    Math.max(
+      18,
+      lines.length * 13
+    );
+
+  ensureSpace(height);
+
+  page.drawText(
+    `${label}:`,
+    {
+      x: margin,
+      y,
+      size: 9,
+      font: bold,
+      color: gray,
+    }
+  );
+
+  let valueY = y;
+
+  for (
+    const line of lines
+  ) {
+    page.drawText(
+      line,
       {
-        size: 11,
-        bold: true,
-        color: green,
+        x: 210,
+        y: valueY,
+        size: 9,
+        font: regular,
+        color: dark,
       }
     );
 
-    drawText(
-      "FINAL ASSET DISPOSITION REPORT",
-      {
-        size: 20,
-        bold: true,
-      }
-    );
+    valueY -= 13;
+  }
 
-    drawText(
-      clean(
-        asset.property_address
-      ),
-      {
-        size: 16,
-        bold: true,
-      }
-    );
+  y -= height;
+}
 
-    drawText(
-      `${clean(
-        asset.city
-      )}, ${clean(
-        asset.state
-      )} ${clean(
-        asset.zip_code
-      )}`,
-      {
-        size: 10,
-        color: gray,
-      }
-    );
+function subheading(
+  text: string
+) {
+  ensureSpace(26);
 
-    y -= 12;
+  page.drawText(
+    text,
+    {
+      x: margin,
+      y,
+      size: 10,
+      font: bold,
+      color: dark,
+    }
+  );
 
-    row(
-      "Final Status",
-      "Disposed"
-    );
+  y -= 17;
+}
+   // -----------------------------------------
+// REPORT HEADER
+// -----------------------------------------
 
-    row(
-      "Institutional Client",
-      asset.institution_name
-    );
+drawText(
+  "CAROLINA REO",
+  {
+    size: 11,
+    bold: true,
+    color: green,
+  }
+);
 
-    row(
-      "Client Asset Number",
-      asset.client_asset_number
-    );
+drawText(
+  "FINAL ASSET DISPOSITION REPORT",
+  {
+    size: 20,
+    bold: true,
+  }
+);
 
-    row(
-      "Loan Number",
-      asset.loan_number
-    );
+drawText(
+  clean(
+    asset.property_address
+  ),
+  {
+    size: 16,
+    bold: true,
+  }
+);
 
-    row(
-      "Assignment Date",
-      date(
-        asset.assignment_date
-      )
-    );
+drawText(
+  location,
+  {
+    size: 10,
+    color: gray,
+  }
+);
 
-    row(
-      "Disposition Date",
-      date(
-        closing?.closing_date ||
-          asset.disposition_date
-      )
-    );
+y -= 10;
 
-    heading(
-      "Executive Financial Summary"
-    );
+row(
+  "Report ID",
+  reportId
+);
 
-    row(
-      "Original List Price",
-      money(
-        marketing?.original_list_price ??
-          asset.initial_list_price
-      )
-    );
+row(
+  "Report Generated",
+  generatedAt.toLocaleString(
+    "en-US"
+  )
+);
 
-    row(
-      "Final List Price",
-      money(
-        marketing?.current_list_price ??
-          asset.initial_list_price
-      )
-    );
+row(
+  "Final Status",
+  "DISPOSED"
+);
 
-    row(
-      "Accepted Offer",
-      money(
-        offer?.accepted_price ??
-          asset.accepted_offer
-      )
-    );
+// -----------------------------------------
+// INSTITUTIONAL IDENTIFICATION
+// -----------------------------------------
 
-    row(
-      "Final Sale Price",
-      money(
-        closing?.gross_sale_price
-      )
-    );
+heading(
+  "Institutional Client & Asset Identification"
+);
 
-    row(
-      "Net Proceeds",
-      money(
-        closing?.net_proceeds
-      )
-    );
+row(
+  "Institutional Client",
+  clientName
+);
 
-    heading(
-      "Property Summary"
-    );
+row(
+  "Client Asset Number",
+  clientAssetNumber
+);
 
-    row(
-      "Property Type",
-      asset.property_type
-    );
+row(
+  "Loan / Servicing Number",
+  loanNumber
+);
 
-    row(
-      "Occupancy",
-      asset.occupancy_status
-    );
+row(
+  "Property Address",
+  asset.property_address
+);
 
-    row(
-      "Bedrooms",
-      asset.bedrooms
-    );
+row(
+  "Location",
+  location
+);
 
-    row(
-      "Bathrooms",
-      asset.bathrooms
-    );
+row(
+  "Assignment Date",
+  date(
+    assignmentDate
+  )
+);
 
-    row(
-      "Square Feet",
-      asset.square_feet
-    );
+row(
+  "Disposition Date",
+  date(
+    dispositionDate
+  )
+);
 
-    row(
-      "Acreage",
-      asset.acreage
-    );
+row(
+  "Days in Inventory",
+  daysInInventory !== null
+    ? daysInInventory
+    : "Not provided"
+);
 
-    heading(
-      "Marketing & Sale"
-    );
+// -----------------------------------------
+// EXECUTIVE SUMMARY
+// -----------------------------------------
 
-    row(
-      "MLS Number",
-      marketing?.mls_number
-    );
+heading(
+  "Executive Disposition Summary"
+);
 
-    row(
-      "MLS List Date",
-      date(
-        marketing?.mls_list_date
-      )
-    );
+row(
+  "Original List Price",
+  money(
+    originalListPrice
+  )
+);
 
-    row(
-      "Listing Agent",
-      marketing?.listing_agent
-    );
+row(
+  "Final List Price",
+  money(
+    finalListPrice
+  )
+);
 
-    row(
-      "Buyer",
-      closing?.buyer_name ||
-        contract?.buyer_name
-    );
+row(
+  "Accepted Offer",
+  money(
+    acceptedPrice
+  )
+);
 
-    row(
-      "Financing",
-      closing?.financing_type ||
-        contract?.financing_type
-    );
+row(
+  "Final Sale Price",
+  money(
+    finalSalePrice
+  )
+);
 
-    heading(
-      "Closing Summary"
-    );
+row(
+  "Net Proceeds",
+  money(
+    netProceeds
+  )
+);
 
-    row(
-      "Contract Date",
-      date(
-        contract?.contract_date
-      )
-    );
+row(
+  "Operational Tasks",
+  `${completedTasks.length} of ${tasks.length} completed`
+);
 
-    row(
-      "Closing Date",
-      date(
-        closing?.closing_date
-      )
-    );
+row(
+  "Open Tasks at Disposition",
+  openTasks.length
+);
 
-    row(
-      "Closing Attorney",
-      closing?.attorney_name ||
-        contract?.attorney_name
-    );
+// -----------------------------------------
+// PROPERTY SUMMARY
+// -----------------------------------------
 
-    row(
-      "Title Company",
-      closing?.title_company ||
-        contract?.title_company
-    );
+heading(
+  "Property Summary"
+);
 
-    row(
-      "Funds Received",
-      closing?.funds_received
-        ? "Yes"
-        : "No"
-    );
+row(
+  "Property Type",
+  asset.property_type
+);
 
-    row(
-      "Deed Recorded",
-      closing?.deed_recorded
-        ? "Yes"
-        : "No"
-    );
+row(
+  "Occupancy at Disposition",
+  asset.occupancy_status
+);
 
-    row(
-      "Recording Date",
-      date(
-        closing?.recording_date
-      )
-    );
+row(
+  "Bedrooms",
+  asset.bedrooms
+);
 
-    row(
-      "Instrument Number",
-      closing?.recording_instrument_number
-    );
+row(
+  "Bathrooms",
+  asset.bathrooms
+);
 
-    row(
-      "MLS Closed / Sold",
-      closing?.mls_closed
-        ? "Yes"
-        : "No"
-    );
+row(
+  "Square Feet",
+  asset.square_feet
+);
 
-    // -----------------------------------------
-    // TASK SUMMARY
-    // -----------------------------------------
+row(
+  "Acreage",
+  asset.acreage
+);
 
-    heading(
-      "Operational Completion"
-    );
+// -----------------------------------------
+// VALUATION AND MARKETING
+// -----------------------------------------
 
-    row(
-      "Total Tasks",
-      tasks.length
-    );
+heading(
+  "Valuation & Marketing"
+);
 
-    row(
-      "Completed Tasks",
-      completedTasks.length
-    );
+row(
+  "Initial / Original List Price",
+  money(
+    originalListPrice
+  )
+);
 
-    row(
-      "Remaining Open",
-      tasks.length -
-        completedTasks.length
-    );
+row(
+  "Final List Price",
+  money(
+    finalListPrice
+  )
+);
 
-    for (const task of tasks) {
-      ensureSpace(24);
+row(
+  "MLS Number",
+  marketing?.mls_number
+);
 
+row(
+  "MLS List Date",
+  date(
+    marketing?.mls_list_date
+  )
+);
+
+row(
+  "Listing Agent",
+  firstValue(
+    marketing?.listing_agent,
+    marketing?.assigned_listing_agent,
+    asset.listing_agent
+  )
+);
+
+row(
+  "Total Showings",
+  marketing?.total_showings
+);
+
+row(
+  "Total Inquiries",
+  marketing?.total_inquiries
+);
+
+row(
+  "MLS Closed / Sold",
+  yesNo(
+    closing?.mls_closed
+  )
+);
+
+// -----------------------------------------
+// OFFER AND CONTRACT
+// -----------------------------------------
+
+heading(
+  "Offer & Contract Summary"
+);
+
+row(
+  "Buyer",
+  firstValue(
+    closing?.buyer_name,
+    contract?.buyer_name,
+    offer?.buyer_name
+  )
+);
+
+row(
+  "Accepted Price",
+  money(
+    acceptedPrice
+  )
+);
+
+row(
+  "Contract Date",
+  date(
+    contract?.contract_date
+  )
+);
+
+row(
+  "Financing",
+  firstValue(
+    closing?.financing_type,
+    contract?.financing_type,
+    offer?.financing_type
+  )
+);
+
+row(
+  "Earnest Money",
+  money(
+    contract?.earnest_money_amount
+  )
+);
+
+row(
+  "Earnest Money Received",
+  yesNo(
+    contract?.earnest_money_received
+  )
+);
+
+row(
+  "Executed Contract Received",
+  yesNo(
+    contract?.executed_contract_received
+  )
+);
+
+// -----------------------------------------
+// REPAIR / PRESERVATION
+// -----------------------------------------
+
+heading(
+  "Preservation & Repair Financials"
+);
+
+row(
+  "Repair / Preservation Costs",
+  money(
+    repairPreservationCosts
+  )
+);
+
+row(
+  "Repair Agreement Complete",
+  yesNo(
+    contract?.repair_agreement_complete
+  )
+);
+
+row(
+  "Inspection Complete",
+  yesNo(
+    contract?.inspection_complete
+  )
+);
+
+// -----------------------------------------
+// CLOSING FINANCIAL RECONCILIATION
+// -----------------------------------------
+
+heading(
+  "Closing & Financial Reconciliation"
+);
+
+row(
+  "Closing Date",
+  date(
+    closing?.closing_date
+  )
+);
+
+row(
+  "Closing Attorney",
+  firstValue(
+    closing?.attorney_name,
+    contract?.attorney_name
+  )
+);
+
+row(
+  "Title Company",
+  firstValue(
+    closing?.title_company,
+    contract?.title_company
+  )
+);
+
+row(
+  "Gross Sale Price",
+  money(
+    closing?.gross_sale_price
+  )
+);
+
+row(
+  "Seller Credits",
+  money(
+    closing?.seller_credits
+  )
+);
+
+row(
+  "Commission Cost",
+  money(
+    closing?.commission_cost
+  )
+);
+
+row(
+  "Attorney / Title Cost",
+  money(
+    closing?.attorney_title_cost
+  )
+);
+
+row(
+  "Taxes / Prorations",
+  money(
+    closing?.taxes_prorations
+  )
+);
+
+row(
+  "HOA Costs",
+  money(
+    closing?.hoa_costs
+  )
+);
+
+row(
+  "Repair / Preservation Costs",
+  money(
+    closing?.repair_preservation_costs
+  )
+);
+
+row(
+  "Other Deductions",
+  money(
+    closing?.other_deductions
+  )
+);
+
+row(
+  "FINAL NET PROCEEDS",
+  money(
+    netProceeds
+  )
+);
+
+// -----------------------------------------
+// FUNDING / RECORDING
+// -----------------------------------------
+
+heading(
+  "Funding & Recording"
+);
+
+row(
+  "Closing Completed",
+  yesNo(
+    closing?.closing_completed
+  )
+);
+
+row(
+  "Funds Received",
+  yesNo(
+    closing?.funds_received
+  )
+);
+
+row(
+  "Funding Date",
+  date(
+    closing?.funding_date
+  )
+);
+
+row(
+  "Deed Executed",
+  yesNo(
+    closing?.deed_executed
+  )
+);
+
+row(
+  "Deed Recorded",
+  yesNo(
+    closing?.deed_recorded
+  )
+);
+
+row(
+  "Recording Date",
+  date(
+    closing?.recording_date
+  )
+);
+
+row(
+  "Book / Page",
+  closing?.recording_book_page
+);
+
+row(
+  "Instrument Number",
+  closing?.recording_instrument_number
+);
+
+// -----------------------------------------
+// FINAL CLOSEOUT
+// -----------------------------------------
+
+heading(
+  "Final Property & File Closeout"
+);
+
+row(
+  "Settlement Statement Approved",
+  yesNo(
+    closing?.settlement_statement_approved
+  )
+);
+
+row(
+  "Client Closing Package Complete",
+  yesNo(
+    closing?.client_closing_package_complete
+  )
+);
+
+row(
+  "Final Invoice Package Complete",
+  yesNo(
+    closing?.final_invoice_package_complete
+  )
+);
+
+row(
+  "Utilities Transferred",
+  yesNo(
+    closing?.utilities_transferred
+  )
+);
+
+row(
+  "Keys Released",
+  yesNo(
+    closing?.keys_released
+  )
+);
+
+row(
+  "Lockbox Removed",
+  yesNo(
+    closing?.lockbox_removed
+  )
+);
+
+row(
+  "Signage Removed",
+  yesNo(
+    closing?.signage_removed
+  )
+);
+
+row(
+  "Vendors Notified",
+  yesNo(
+    closing?.vendors_notified
+  )
+);
+
+// -----------------------------------------
+// OPERATIONAL COMPLETION
+// -----------------------------------------
+
+heading(
+  "Operational Completion"
+);
+
+row(
+  "Total Tasks",
+  tasks.length
+);
+
+row(
+  "Completed Tasks",
+  completedTasks.length
+);
+
+row(
+  "Remaining Open",
+  openTasks.length
+);
+
+for (
+  const task of tasks
+) {
+  ensureSpace(30);
+
+  drawText(
+    `${
+      task.status ===
+      "completed"
+        ? "[COMPLETE]"
+        : "[OPEN]"
+    } ${clean(
+      task.title
+    )}`,
+    {
+      size: 9,
+      bold:
+        task.status !==
+        "completed",
+      color:
+        task.status ===
+        "completed"
+          ? dark
+          : gray,
+      indent: 8,
+    }
+  );
+}
+
+// -----------------------------------------
+// LIFECYCLE AUDIT
+// -----------------------------------------
+
+heading(
+  "Lifecycle & Activity History"
+);
+
+for (
+  const activity of activities
+) {
+  ensureSpace(45);
+
+  drawText(
+    clean(
+      activity.title
+    ),
+    {
+      size: 9,
+      bold: true,
+    }
+  );
+
+  if (
+    activity.description
+  ) {
+    const lines =
+      wrapText(
+        String(
+          activity.description
+        ),
+        78
+      );
+
+    for (
+      const line of lines
+    ) {
       drawText(
-        `${task.status === "completed" ? "[Complete]" : "[Open]"} ${clean(
-          task.title
-        )}`,
+        line,
         {
-          size: 9,
+          size: 8,
+          color: gray,
           indent: 8,
         }
       );
     }
+  }
 
-    // -----------------------------------------
-    // ACTIVITY HISTORY
-    // -----------------------------------------
+  drawText(
+    dateTime(
+      activity.created_at
+    ),
+    {
+      size: 7,
+      color: gray,
+      indent: 8,
+    }
+  );
 
-    heading(
-      "Lifecycle & Activity History"
+  y -= 4;
+}
+
+// -----------------------------------------
+// FINAL NOTES
+// -----------------------------------------
+
+if (
+  closing?.closing_notes ||
+  closing?.disposition_notes
+) {
+  heading(
+    "Final Asset Manager Notes"
+  );
+
+  if (
+    closing?.closing_notes
+  ) {
+    subheading(
+      "Closing Notes"
     );
 
-    for (
-      const activity of activities
-    ) {
-      ensureSpace(42);
-
-      drawText(
-        clean(
-          activity.title
+    const lines =
+      wrapText(
+        String(
+          closing.closing_notes
         ),
-        {
-          size: 9,
-          bold: true,
-        }
+        78
       );
 
-      if (
-        activity.description
-      ) {
-        const description =
-          String(
-            activity.description
-          );
-
-        const chunks =
-          description.match(
-            /.{1,82}(\s|$)/g
-          ) || [
-            description,
-          ];
-
-        for (
-          const chunk of chunks
-        ) {
-          drawText(
-            chunk.trim(),
-            {
-              size: 8,
-              color: gray,
-              indent: 8,
-            }
-          );
-        }
-      }
-
-      if (
-        activity.created_at
-      ) {
-        drawText(
-          new Date(
-            activity.created_at
-          ).toLocaleString(
-            "en-US"
-          ),
-          {
-            size: 7,
-            color: gray,
-            indent: 8,
-          }
-        );
-      }
-
-      y -= 4;
-    }
-
-    // -----------------------------------------
-    // FINAL NOTES
-    // -----------------------------------------
-
-    if (
-      closing?.closing_notes ||
-      closing?.disposition_notes
+    for (
+      const line of lines
     ) {
-      heading(
-        "Final Asset Manager Notes"
+      drawText(
+        line,
+        {
+          size: 8,
+          color: gray,
+          indent: 8,
+        }
+      );
+    }
+  }
+
+  if (
+    closing?.disposition_notes
+  ) {
+    subheading(
+      "Disposition Notes"
+    );
+
+    const lines =
+      wrapText(
+        String(
+          closing.disposition_notes
+        ),
+        78
       );
 
-      if (
-        closing?.closing_notes
-      ) {
-        drawText(
-          "Closing Notes",
-          {
-            size: 9,
-            bold: true,
-          }
-        );
-
-        drawText(
-          clean(
-            closing.closing_notes
-          ),
-          {
-            size: 8,
-            color: gray,
-            indent: 8,
-          }
-        );
-      }
-
-      if (
-        closing?.disposition_notes
-      ) {
-        drawText(
-          "Disposition Notes",
-          {
-            size: 9,
-            bold: true,
-          }
-        );
-
-        drawText(
-          clean(
-            closing.disposition_notes
-          ),
-          {
-            size: 8,
-            color: gray,
-            indent: 8,
-          }
-        );
-      }
+    for (
+      const line of lines
+    ) {
+      drawText(
+        line,
+        {
+          size: 8,
+          color: gray,
+          indent: 8,
+        }
+      );
     }
+  }
+}
 
+// -----------------------------------------
+// FINAL CERTIFICATION
+// -----------------------------------------
+
+heading(
+  "Final Disposition Certification"
+);
+
+drawText(
+  "Carolina REO Asset Management",
+  {
+    size: 11,
+    bold: true,
+    color: green,
+  }
+);
+
+const certificationLines = [
+  "This report summarizes the operational record maintained by Carolina REO for this asset.",
+  "The asset has completed the institutional asset-management lifecycle through final disposition.",
+  "Property, task, financial, closing, and activity information shown above reflects the data recorded in the Carolina REO platform at the time this report was generated.",
+];
+
+for (
+  const certification of certificationLines
+) {
+  const lines =
+    wrapText(
+      certification,
+      82
+    );
+
+  for (
+    const line of lines
+  ) {
+    drawText(
+      line,
+      {
+        size: 8,
+        color: gray,
+      }
+    );
+  }
+
+  y -= 3;
+}
+
+y -= 8;
+
+row(
+  "Final Status",
+  "DISPOSED"
+);
+
+row(
+  "Disposition Date",
+  date(
+    dispositionDate
+  )
+);
+
+row(
+  "Final Sale Price",
+  money(
+    finalSalePrice
+  )
+);
+
+row(
+  "Net Proceeds",
+  money(
+    netProceeds
+  )
+);
+
+row(
+  "Report ID",
+  reportId
+);
+
+row(
+  "Generated",
+  generatedAt.toLocaleString(
+    "en-US"
+  )
+); 
     // -----------------------------------------
     // FOOTERS
     // -----------------------------------------
@@ -1121,11 +1627,11 @@ const reportId =
         index
       ) => {
         pdfPage.drawText(
-          `Carolina REO | Final Asset Disposition Report | Page ${
-            index + 1
-          } of ${
-            pages.length
-          }`,
+  `Carolina REO Asset Management | ${reportId} | Final Asset Disposition Report | Page ${
+    index + 1
+  } of ${
+    pages.length
+  }`,
           {
             x: margin,
             y: 22,
