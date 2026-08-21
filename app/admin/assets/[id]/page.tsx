@@ -11,6 +11,7 @@ import RepairPanel from "./RepairPanel";
 import PreMarketingPanel from "./PreMarketingPanel";
 import MarketingPanel from "./MarketingPanel";
 import OfferPanel from "./OfferPanel";
+import UnderContractPanel from "./UnderContractPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -589,7 +590,17 @@ export default async function AssetWorkspacePage({
       }
     />
   </section>
-)}        
+)}    
+ {activeTab === "under-contract" && (
+  <section className="mt-6">
+    <UnderContractPanel
+      assetId={asset.id}
+      acceptedPrice={
+        asset.accepted_offer
+      }
+    />
+  </section>
+)}       
   {activeTab === "valuation" && (
   <section className="mt-6">
     <BpoPanel
