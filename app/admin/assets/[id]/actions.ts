@@ -1520,3 +1520,340 @@ export async function saveInitialBpo(
     };
   }
 }
+export type PreservationInput = {
+  reviewDate: string;
+
+  reviewedBy: string;
+  vendorCompany: string;
+
+  lawnServiceRequired: boolean;
+  debrisRemovalRequired: boolean;
+  winterizationRequired: boolean;
+  utilityManagementRequired: boolean;
+  emergencyMaintenanceRequired: boolean;
+  poolServiceRequired: boolean;
+  pestControlRequired: boolean;
+
+  lawnServiceStatus: string;
+  debrisRemovalStatus: string;
+  winterizationStatus: string;
+  utilityManagementStatus: string;
+  emergencyMaintenanceStatus: string;
+  poolServiceStatus: string;
+  pestControlStatus: string;
+
+  preservationBid: string;
+  clientApprovalStatus: string;
+  approvedAmount: string;
+  finalCost: string;
+
+  workOrderNumber: string;
+
+  preservationSummary: string;
+  approvalNotes: string;
+  completionNotes: string;
+
+  completed: boolean;
+};
+
+function preservationNumber(value: string) {
+  if (!value?.trim()) return null;
+
+  const number = Number(
+    value.replace(/[$,]/g, "")
+  );
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+export async function savePreservationReview(
+  assetId: string,
+  input: PreservationInput
+) {
+  try {
+    const supabase = getSupabase();
+
+    if (!assetId) {
+      return {
+        success: false,
+        error: "Asset ID is missing.",
+      };
+    }
+
+    if (!input.reviewDate) {
+      return {
+        success: false,
+        error: "Review date is required.",
+      };
+    }
+
+    const now = new Date().toISOString();
+
+    const { data: asset, error: assetError } =
+      await supabase
+        .from("reo_assets")
+        .select("id, workflow_stage")
+        .eq("id", assetId)
+        .single();
+
+    if (assetError || !asset) {
+      throw assetError ||
+        new Error("Asset could not be found.");
+    }
+
+    const {
+      data: preservation,
+      error: preservationError,
+    } = await supabase
+      .from("reo_preservation_records")
+      .insert({
+        asset_id: assetId,
+
+        review_date:
+          input.reviewDate,
+
+        reviewed_by:
+          input.reviewedBy || null,
+
+        vendor_company:
+          input.vendorCompany || null,
+
+        lawn_service_required:
+          input.lawnServiceRequired,
+
+        debris_removal_required:
+          input.debrisRemovalRequired,
+
+        winterization_required:
+          input.winterizationRequired,
+
+        utility_management_required:
+          input.utilityManagementRequired,
+
+        emergency_maintenance_required:
+          input.emergencyMaintenanceRequired,
+
+        pool_service_required:
+          input.poolServiceRequired,
+
+        pest_control_required:
+          input.pestControlRequired,
+
+        lawn_service_status:
+          input.lawnServiceStatus || null,
+
+        debris_removal_status:
+          input.debrisRemovalStatus || null,
+
+        winterization_status:
+          input.winterizationStatus || null,
+
+        utility_management_status:
+          input.utilityManagementStatus || null,
+
+        emergency_maintenance_status:
+          input.emergencyMaintenanceStatus || null,
+
+        pool_service_status:
+          input.poolServiceStatus || null,
+
+        pest_control_status:
+          input.pestControlStatus || null,
+
+        preservation_bid:
+          preservationNumber(
+            input.preservationBid
+          ),
+
+        client_approval_status:
+          input.clientApprovalStatus || null,
+
+        approved_amount:
+          preservationNumber(
+            input.approvedAmount
+          ),
+
+        final_cost:
+          preservationNumber(
+            input.finalCost
+          ),
+
+        work_order_number:
+          input.workOrderNumber || null,
+
+        preservation_summary:
+          input.preservationSummary || null,
+
+        approval_notes:
+          input.approvalNotes || null,
+
+        completion_notes:
+          input.completionNotes || null,
+
+        completed:
+          input.completed,
+
+        completed_at:
+          input.completed
+            ? now
+            : null,
+
+        updated_at: now,
+      })
+      .select("id")
+      .single();
+
+    if (preservationError) {
+      throw preservationError;
+    }
+
+    const lifecycle = [
+      "assignment",
+      "occupancy",
+      "securing",
+      "inspection",
+      "valuation",
+      "preservation",
+      "repairs",
+      "pre_marketing",
+      "listed",
+      "offer_review",
+      "under_contract",
+      "closing",
+      "disposed",
+    ];
+
+    const currentStage =
+      asset.workflow_stage || "assignment";
+
+    const currentIndex =
+      lifecycle.indexOf(currentStage);
+
+    const preservationIndex =
+      lifecycle.indexOf("preservation");
+
+    const newStage =
+      currentIndex < preservationIndex
+        ? "preservation"
+        : currentStage;
+
+    const { error: assetUpdateError } =
+      await supabase
+        .from("reo_assets")
+        .update({
+          workflow_stage: newStage,
+          preservation_required:
+            input.completed
+              ? "No"
+              : "Yes",
+          updated_at: now,
+        })
+        .eq("id", assetId);
+
+    if (assetUpdateError) {
+      throw assetUpdateError;
+    }
+
+    if (input.completed) {
+      const {
+        data: preservationTasks,
+        error: taskLookupError,
+      } = await supabase
+        .from("reo_asset_tasks")
+        .select("id")
+        .eq("asset_id", assetId)
+        .in("task_type", [
+          "preservation_review",
+          "preservation_follow_up",
+        ])
+        .eq("status", "open");
+
+      if (taskLookupError) {
+        throw taskLookupError;
+      }
+
+      if (
+        preservationTasks &&
+        preservationTasks.length > 0
+      ) {
+        const ids =
+          preservationTasks.map(
+            (task) => task.id
+          );
+
+        const { error: taskUpdateError } =
+          await supabase
+            .from("reo_asset_tasks")
+            .update({
+              status: "completed",
+              completed_at: now,
+              updated_at: now,
+            })
+            .in("id", ids);
+
+        if (taskUpdateError) {
+          throw taskUpdateError;
+        }
+      }
+    }
+
+    const { error: activityError } =
+      await supabase
+        .from("reo_asset_activity")
+        .insert({
+          asset_id: assetId,
+
+          activity_type:
+            input.completed
+              ? "preservation_completed"
+              : "preservation_review_saved",
+
+          title:
+            input.completed
+              ? "Preservation Completed"
+              : "Preservation Review Saved",
+
+          description:
+            input.preservationSummary ||
+            "Preservation review updated.",
+
+          old_stage: currentStage,
+          new_stage: newStage,
+
+          client_visible: true,
+        });
+
+    if (activityError) {
+      throw activityError;
+    }
+
+    revalidatePath(
+      `/admin/assets/${assetId}`
+    );
+
+    revalidatePath("/admin");
+
+    return {
+      success: true,
+      preservationId:
+        preservation.id,
+      workflowStage:
+        newStage,
+    };
+  } catch (error) {
+    console.error(
+      "CAROLINA REO PRESERVATION ERROR:",
+      error
+    );
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to save preservation review.",
+    };
+  }
+}
