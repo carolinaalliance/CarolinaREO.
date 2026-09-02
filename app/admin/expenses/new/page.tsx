@@ -10,6 +10,9 @@ import {
   Receipt,
   UserRound,
 } from "lucide-react";
+import {
+  createExpense,
+} from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -218,9 +221,9 @@ export default async function NewExpensePage({
         </div>
 
         <form
-          action="#"
-          className="space-y-6"
-        >
+  action={createExpense}
+  className="space-y-6"
+>
           <Section
             icon={
               <Building2 className="h-5 w-5" />
