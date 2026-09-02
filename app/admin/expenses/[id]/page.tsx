@@ -185,6 +185,33 @@ export default async function ExpenseDetailPage({
       ? expense.reo_work_orders[0]
       : expense.reo_work_orders;
 
+  const {
+  data: invoiceDocument,
+  error: invoiceDocumentError,
+} =
+  await supabase
+    .from("reo_documents")
+    .select(`
+      id,
+      file_name,
+      mime_type,
+      file_size,
+      storage_path
+    `)
+    .eq(
+      "expense_id",
+      expense.id
+    )
+    .eq(
+      "document_type",
+      "vendor_invoice"
+    )
+    .maybeSingle();
+
+if (invoiceDocumentError) {
+  throw invoiceDocumentError;
+}
+
 const uploadDocumentAction =
   uploadExpenseDocument.bind(
     null,
@@ -562,13 +589,35 @@ const uploadDocumentAction =
     </button>
   </form>
 
-  {expense.document_url ? (
-    <p className="pt-2 text-xs leading-5 text-slate-500">
-      The invoice document is stored
-      securely in the private Carolina
-      REO document bucket.
+ {invoiceDocument ? (
+  <div className="space-y-3 pt-2">
+    <div className="rounded-xl border border-green-500/20 bg-green-500/[0.05] p-4">
+      <p className="text-sm font-semibold text-green-300">
+        Document securely stored
+      </p>
+
+      <p className="mt-1 break-all text-xs text-slate-500">
+        {invoiceDocument.file_name}
+      </p>
+    </div>
+
+    <a
+      href={`/api/reo/documents/${invoiceDocument.id}/view`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-2.5 text-sm font-semibold text-green-300 transition hover:bg-green-500/20 hover:text-green-200"
+    >
+      View Document
+    </a>
+
+    <p className="text-xs leading-5 text-slate-500">
+      A temporary secure link is
+      generated when the document is
+      opened. The storage bucket remains
+      private.
     </p>
-  ) : null}
+  </div>
+) : null}
 </Section>
         </div>
 
