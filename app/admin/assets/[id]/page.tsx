@@ -172,11 +172,12 @@ export default async function AssetWorkspacePage({
   
   const supabase = getSupabase();
 
-  const [
-    assetResult,
-    tasksResult,
-    activityResult,
-  ] = await Promise.all([
+ const [
+  assetResult,
+  tasksResult,
+  activityResult,
+  workOrdersResult,
+] = await Promise.all([
     supabase
       .from("reo_assets")
       .select(`
@@ -205,15 +206,87 @@ export default async function AssetWorkspacePage({
       .eq("asset_id", id)
       .order("created_at", { ascending: false })
       .limit(25),
+   
+   supabase
+  .from("reo_work_orders")
+  .select(`
+    *,
+    reo_vendors (
+      id,
+      company_name,
+      contact_name,
+      phone,
+      email
+    )
+  `)
+  .eq("asset_id", id)
+  .order("created_at", {
+    ascending: false,
+  }),
   ]);
 
   if (assetResult.error || !assetResult.data) {
     notFound();
   }
 
-  const asset: any = assetResult.data;
-  const tasks: any[] = tasksResult.data ?? [];
-  const activity: any[] = activityResult.data ?? [];
+  if (workOrdersResult.error) {
+  throw workOrdersResult.error;
+}
+
+  const asset: any =
+  assetResult.data;
+
+const tasks: any[] =
+  tasksResult.data ?? [];
+
+const activity: any[] =
+  activityResult.data ?? [];
+
+const workOrders: any[] =
+  workOrdersResult.data ?? [];
+
+const activeWorkOrders =
+  workOrders.filter(
+    (workOrder) =>
+      workOrder.status !== "completed" &&
+      workOrder.status !== "cancelled"
+  );
+
+const completedWorkOrders =
+  workOrders.filter(
+    (workOrder) =>
+      workOrder.status === "completed"
+  );
+
+const totalAuthorized =
+  workOrders.reduce(
+    (total, workOrder) =>
+      total +
+      Number(
+        workOrder.authorization_limit || 0
+      ),
+    0
+  );
+
+const totalEstimated =
+  workOrders.reduce(
+    (total, workOrder) =>
+      total +
+      Number(
+        workOrder.estimated_cost || 0
+      ),
+    0
+  );
+
+const totalFinalCost =
+  workOrders.reduce(
+    (total, workOrder) =>
+      total +
+      Number(
+        workOrder.final_cost || 0
+      ),
+    0
+  );
 
   const client = Array.isArray(asset.reo_clients)
     ? asset.reo_clients[0]
@@ -636,7 +709,284 @@ export default async function AssetWorkspacePage({
       }
     />
   </section>
-)}      
+)}    
+
+{activeTab === "work-orders" && (
+  <section className="mt-6 space-y-6">
+    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+      <div>
+        <h2 className="text-2xl font-bold">
+          Work Orders
+        </h2>
+
+        <p className="mt-1 text-sm text-slate-500">
+          Vendor assignments, field services,
+          financial authorization, invoices,
+          and completion verification.
+        </p>
+      </div>
+
+      <Link
+        href={`/admin/work-orders/new?asset=${asset.id}`}
+        className="inline-flex items-center justify-center rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-green-500"
+      >
+        Create Work Order
+      </Link>
+    </div>
+
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+      <Metric
+        label="Total Work Orders"
+        value={String(
+          workOrders.length
+        )}
+      />
+
+      <Metric
+        label="Active"
+        value={String(
+          activeWorkOrders.length
+        )}
+      />
+
+      <Metric
+        label="Completed"
+        value={String(
+          completedWorkOrders.length
+        )}
+      />
+
+      <Metric
+        label="Authorized"
+        value={money(
+          totalAuthorized
+        )}
+        small
+      />
+
+      <Metric
+        label="Estimated"
+        value={money(
+          totalEstimated
+        )}
+        small
+      />
+
+      <Metric
+        label="Final Cost"
+        value={money(
+          totalFinalCost
+        )}
+        small
+      />
+    </div>
+
+    <div className="reo-card overflow-hidden rounded-2xl">
+      <div className="border-b border-white/10 px-6 py-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/10">
+            <Wrench className="h-5 w-5 text-green-400" />
+          </div>
+
+          <div>
+            <h3 className="font-semibold">
+              Asset Work Orders
+            </h3>
+
+            <p className="mt-1 text-xs text-slate-500">
+              All field work assigned for this asset
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {workOrders.length === 0 ? (
+        <div className="px-6 py-14 text-center">
+          <Wrench className="mx-auto h-8 w-8 text-slate-700" />
+
+          <div className="mt-4 font-semibold text-slate-200">
+            No work orders
+          </div>
+
+          <p className="mt-2 text-sm text-slate-500">
+            No vendor work has been assigned to this asset.
+          </p>
+
+          <Link
+            href={`/admin/work-orders/new?asset=${asset.id}`}
+            className="mt-5 inline-flex rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-500"
+          >
+            Create First Work Order
+          </Link>
+        </div>
+      ) : (
+        <div className="divide-y divide-white/5">
+          {workOrders.map(
+            (workOrder) => {
+              const vendor =
+                Array.isArray(
+                  workOrder.reo_vendors
+                )
+                  ? workOrder.reo_vendors[0]
+                  : workOrder.reo_vendors;
+
+              const isCompleted =
+                workOrder.status ===
+                "completed";
+
+              const isVerified =
+                Boolean(
+                  workOrder.completion_verified
+                );
+
+              return (
+                <div
+                  key={workOrder.id}
+                  className="px-6 py-6"
+                >
+                  <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-start">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Link
+                          href={`/admin/work-orders/${workOrder.id}`}
+                          className="font-semibold text-white hover:text-green-400"
+                        >
+                          {
+                            workOrder.work_order_number
+                          }
+                        </Link>
+
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            isCompleted &&
+                            isVerified
+                              ? "bg-green-500/10 text-green-400"
+                              : isCompleted
+                              ? "bg-emerald-500/10 text-emerald-300"
+                              : workOrder.status ===
+                                "in_progress"
+                              ? "bg-blue-500/10 text-blue-300"
+                              : workOrder.status ===
+                                "cancelled"
+                              ? "bg-red-500/10 text-red-300"
+                              : "bg-amber-500/10 text-amber-300"
+                          }`}
+                        >
+                          {isCompleted &&
+                          isVerified
+                            ? "Completed / Verified"
+                            : stageLabel(
+                                workOrder.status
+                              )}
+                        </span>
+
+                        {workOrder.priority && (
+                          <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-semibold text-slate-400">
+                            {stageLabel(
+                              workOrder.priority
+                            )}{" "}
+                            Priority
+                          </span>
+                        )}
+                      </div>
+
+                      <h4 className="mt-3 text-lg font-semibold text-slate-100">
+                        {workOrder.title}
+                      </h4>
+
+                      <div className="mt-1 text-sm text-slate-500">
+                        {workOrder.category}
+                      </div>
+
+                      {workOrder.scope_of_work && (
+                        <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-400">
+                          {
+                            workOrder.scope_of_work
+                          }
+                        </p>
+                      )}
+                    </div>
+
+                    <Link
+                      href={`/admin/work-orders/${workOrder.id}`}
+                      className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+                    >
+                      View Work Order
+                    </Link>
+                  </div>
+
+                  <div className="mt-6 grid gap-5 border-t border-white/5 pt-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
+                    <Detail
+                      label="Vendor"
+                      value={
+                        vendor?.company_name ||
+                        "Unassigned"
+                      }
+                    />
+
+                    <Detail
+                      label="Assigned"
+                      value={formatDate(
+                        workOrder.assigned_date
+                      )}
+                    />
+
+                    <Detail
+                      label="Due"
+                      value={formatDate(
+                        workOrder.due_date
+                      )}
+                    />
+
+                    <Detail
+                      label="Completed"
+                      value={formatDate(
+                        workOrder.completed_date
+                      )}
+                    />
+
+                    <Detail
+                      label="Authorized"
+                      value={money(
+                        workOrder.authorization_limit
+                      )}
+                    />
+
+                    <Detail
+                      label="Estimated"
+                      value={money(
+                        workOrder.estimated_cost
+                      )}
+                    />
+
+                    <Detail
+                      label="Final Cost"
+                      value={money(
+                        workOrder.final_cost
+                      )}
+                    />
+
+                    <Detail
+                      label="Invoice"
+                      value={
+                        workOrder.invoice_received
+                          ? workOrder.invoice_number
+                            ? `Received · ${workOrder.invoice_number}`
+                            : "Received"
+                          : "Not received"
+                      }
+                    />
+                  </div>
+                </div>
+              );
+            }
+          )}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+        
         {activeTab === "overview" && (
 <section className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
           <div className="space-y-6">
