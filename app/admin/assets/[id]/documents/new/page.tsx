@@ -8,6 +8,9 @@ import {
   UserRound,
   Wrench,
 } from "lucide-react";
+import {
+  uploadAssetDocument,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -143,9 +146,9 @@ export default async function NewAssetDocumentPage({
         </div>
 
         <form
-          action="#"
-          className="space-y-6"
-        >
+  action={uploadAssetDocument}
+  className="space-y-6"
+>
           <input
             type="hidden"
             name="asset_id"
