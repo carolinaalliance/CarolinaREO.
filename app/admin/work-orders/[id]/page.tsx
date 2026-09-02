@@ -347,22 +347,21 @@ export default async function WorkOrderDetailPage({
                   }
                 />
 
-                <InfoRow
-                  icon={
-                    <MapPin className="h-4 w-4" />
-                  }
-                  label="Location"
-                  value={
-                 value={
-  [
-    asset.city,
-    asset.state,
-  ]
-    .filter(Boolean)
-    .join(", ") ||
-  "Not provided"
-}
-                />
+               <InfoRow
+  icon={
+    <MapPin className="h-4 w-4" />
+  }
+  label="Location"
+  value={
+    [
+      asset.city,
+      asset.state,
+    ]
+      .filter(Boolean)
+      .join(", ") ||
+    "Not provided"
+  }
+/>
 
                 <InfoRow
                   label="Workflow Stage"
