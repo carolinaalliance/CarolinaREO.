@@ -10,6 +10,9 @@ import {
   Receipt,
   UserRound,
 } from "lucide-react";
+import {
+  uploadExpenseDocument,
+} from "./document-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -182,6 +185,12 @@ export default async function ExpenseDetailPage({
       ? expense.reo_work_orders[0]
       : expense.reo_work_orders;
 
+const uploadDocumentAction =
+  uploadExpenseDocument.bind(
+    null,
+    expense.id
+  );
+  
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <div className="mx-auto max-w-6xl px-6 py-8">
@@ -511,25 +520,56 @@ export default async function ExpenseDetailPage({
           </Section>
 
           <Section
-            icon={
-              <FileText className="h-5 w-5" />
-            }
-            title="Document"
-          >
-            <InfoRow
-              label="Invoice Document"
-              value={
-                expense.document_url
-                  ? "Document attached"
-                  : "Not uploaded"
-              }
-            />
+  icon={
+    <FileText className="h-5 w-5" />
+  }
+  title="Document"
+>
+  <InfoRow
+    label="Invoice Document"
+    value={
+      expense.document_url
+        ? "Uploaded"
+        : "Not uploaded"
+    }
+  />
 
-            <p className="pt-2 text-sm leading-6 text-slate-500">
-              Invoice upload will be connected
-              in the next document-storage step.
-            </p>
-          </Section>
+  <form
+    action={uploadDocumentAction}
+    className="space-y-4 pt-2"
+  >
+    <div>
+      <label className="mb-2 block text-sm font-semibold text-slate-300">
+        Invoice / Receipt
+      </label>
+
+      <input
+        type="file"
+        name="document"
+        accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+        required
+        className="block w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-green-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-green-500"
+      />
+    </div>
+
+    <button
+      type="submit"
+      className="rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-500"
+    >
+      {expense.document_url
+        ? "Replace Invoice Document"
+        : "Upload Invoice Document"}
+    </button>
+  </form>
+
+  {expense.document_url ? (
+    <p className="pt-2 text-xs leading-5 text-slate-500">
+      The invoice document is stored
+      securely in the private Carolina
+      REO document bucket.
+    </p>
+  ) : null}
+</Section>
         </div>
 
         <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.025]">
