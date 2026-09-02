@@ -236,3 +236,181 @@ export async function createWorkOrder(
     `/admin/work-orders/${workOrder.id}`
   );
 }
+
+export async function updateWorkOrder(
+  workOrderId: string,
+  formData: FormData
+) {
+  const supabase = getSupabase();
+
+  if (!workOrderId) {
+    throw new Error(
+      "Work order ID is required."
+    );
+  }
+
+  const status =
+    textValue(
+      formData,
+      "status"
+    ) || "assigned";
+
+  const title =
+    textValue(
+      formData,
+      "title"
+    );
+
+  const category =
+    textValue(
+      formData,
+      "category"
+    );
+
+  if (!title) {
+    throw new Error(
+      "Work order title is required."
+    );
+  }
+
+  if (!category) {
+    throw new Error(
+      "Work order category is required."
+    );
+  }
+
+  const clientApproved =
+    checkboxValue(
+      formData,
+      "client_approved"
+    );
+
+  const completionVerified =
+    checkboxValue(
+      formData,
+      "completion_verified"
+    );
+
+  const invoiceReceived =
+    checkboxValue(
+      formData,
+      "invoice_received"
+    );
+
+  const clientApprovalDate =
+    clientApproved
+      ? textValue(
+          formData,
+          "client_approval_date"
+        )
+      : null;
+
+  const completedDate =
+    status === "completed"
+      ? textValue(
+          formData,
+          "completed_date"
+        )
+      : null;
+
+  const { error } =
+    await supabase
+      .from("reo_work_orders")
+      .update({
+        category,
+
+        title,
+
+        scope_of_work:
+          textValue(
+            formData,
+            "scope_of_work"
+          ),
+
+        priority:
+          textValue(
+            formData,
+            "priority"
+          ) || "normal",
+
+        status,
+
+        authorization_limit:
+          moneyValue(
+            formData,
+            "authorization_limit"
+          ),
+
+        estimated_cost:
+          moneyValue(
+            formData,
+            "estimated_cost"
+          ),
+
+        final_cost:
+          moneyValue(
+            formData,
+            "final_cost"
+          ),
+
+        assigned_date:
+          textValue(
+            formData,
+            "assigned_date"
+          ),
+
+        due_date:
+          textValue(
+            formData,
+            "due_date"
+          ),
+
+        completed_date:
+          completedDate,
+
+        client_approval_required:
+          checkboxValue(
+            formData,
+            "client_approval_required"
+          ),
+
+        client_approved:
+          clientApproved,
+
+        client_approval_date:
+          clientApprovalDate,
+
+        completion_verified:
+          completionVerified,
+
+        invoice_received:
+          invoiceReceived,
+
+        invoice_number:
+          textValue(
+            formData,
+            "invoice_number"
+          ),
+
+        notes:
+          textValue(
+            formData,
+            "notes"
+          ),
+
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq(
+        "id",
+        workOrderId
+      );
+
+  if (error) {
+    throw error;
+  }
+
+  redirect(
+    `/admin/work-orders/${workOrderId}`
+  );
+}
