@@ -15,6 +15,7 @@ import UnderContractPanel from "./UnderContractPanel";
 import ClosingPanel from "./ClosingPanel";
 import DispositionPanel from "./DispositionPanel";
 import ExpensesPanel from "./ExpensesPanel";
+import DocumentsPanel from "./DocumentsPanel";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -988,6 +989,14 @@ const totalFinalCost =
   </section>
 )}
 
+{activeTab === "documents" && (
+  <section className="mt-6">
+    <DocumentsPanel
+      assetId={asset.id}
+    />
+  </section>
+)}
+        
 {activeTab === "expenses" && (
   <section className="mt-6">
     <ExpensesPanel
