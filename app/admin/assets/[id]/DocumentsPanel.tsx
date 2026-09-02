@@ -66,12 +66,12 @@ export default async function DocumentsPanel({
     .from("reo_documents")
     .select(`
       *,
-      reo_expenses (
-        id,
-        invoice_number,
-        category,
-        invoice_amount
-      ),
+     reo_expenses (
+  id,
+  invoice_number,
+  expense_category,
+  invoice_amount
+),
       reo_work_orders (
         id,
         work_order_number,
