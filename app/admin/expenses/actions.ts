@@ -220,3 +220,153 @@ export async function createExpense(
     `/admin/assets/${expense.asset_id}?tab=expenses`
   );
 }
+
+export async function updateExpense(
+  expenseId: string,
+  formData: FormData
+) {
+  const supabase = getSupabase();
+
+  if (!expenseId) {
+    throw new Error(
+      "Expense ID is required."
+    );
+  }
+
+  const expenseCategory =
+    textValue(
+      formData,
+      "expense_category"
+    );
+
+  if (!expenseCategory) {
+    throw new Error(
+      "Expense category is required."
+    );
+  }
+
+  const { error } =
+    await supabase
+      .from("reo_expenses")
+      .update({
+        work_order_id:
+          textValue(
+            formData,
+            "work_order_id"
+          ),
+
+        vendor_id:
+          textValue(
+            formData,
+            "vendor_id"
+          ),
+
+        expense_category:
+          expenseCategory,
+
+        description:
+          textValue(
+            formData,
+            "description"
+          ),
+
+        invoice_number:
+          textValue(
+            formData,
+            "invoice_number"
+          ),
+
+        invoice_amount:
+          moneyValue(
+            formData,
+            "invoice_amount"
+          ),
+
+        invoice_date:
+          textValue(
+            formData,
+            "invoice_date"
+          ),
+
+        approval_status:
+          textValue(
+            formData,
+            "approval_status"
+          ) || "submitted",
+
+        approved_amount:
+          moneyValue(
+            formData,
+            "approved_amount"
+          ),
+
+        approved_date:
+          textValue(
+            formData,
+            "approved_date"
+          ),
+
+        payment_status:
+          textValue(
+            formData,
+            "payment_status"
+          ) || "unpaid",
+
+        paid_amount:
+          moneyValue(
+            formData,
+            "paid_amount"
+          ),
+
+        paid_date:
+          textValue(
+            formData,
+            "paid_date"
+          ),
+
+        payment_reference:
+          textValue(
+            formData,
+            "payment_reference"
+          ),
+
+        reimbursement_status:
+          textValue(
+            formData,
+            "reimbursement_status"
+          ) || "not_submitted",
+
+        reimbursed_amount:
+          moneyValue(
+            formData,
+            "reimbursed_amount"
+          ),
+
+        reimbursed_date:
+          textValue(
+            formData,
+            "reimbursed_date"
+          ),
+
+        internal_notes:
+          textValue(
+            formData,
+            "internal_notes"
+          ),
+
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq(
+        "id",
+        expenseId
+      );
+
+  if (error) {
+    throw error;
+  }
+
+  redirect(
+    `/admin/expenses/${expenseId}`
+  );
+}
