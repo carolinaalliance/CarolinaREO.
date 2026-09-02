@@ -1902,7 +1902,7 @@ export type RepairInput = {
 };
 
 function repairNumber(value: string) {
-  if (!value?.trim()) return 0;
+  if (!value?.trim()) return null;
 
   const number = Number(
     value.replace(/[$,]/g, "")
@@ -1910,7 +1910,7 @@ function repairNumber(value: string) {
 
   return Number.isFinite(number)
     ? number
-    : 0;
+    : null;
 }
 
 export async function saveRepairScope(
@@ -1937,17 +1937,17 @@ export async function saveRepairScope(
     const now = new Date().toISOString();
 
     const total =
-      repairNumber(input.roofingAmount) +
-      repairNumber(input.hvacAmount) +
-      repairNumber(input.plumbingAmount) +
-      repairNumber(input.electricalAmount) +
-      repairNumber(input.structuralAmount) +
-      repairNumber(input.interiorAmount) +
-      repairNumber(input.exteriorAmount) +
-      repairNumber(input.landscapingAmount) +
-      repairNumber(input.appliancesAmount) +
-      repairNumber(input.otherAmount);
-
+  (repairNumber(input.roofingAmount) ?? 0) +
+  (repairNumber(input.hvacAmount) ?? 0) +
+  (repairNumber(input.plumbingAmount) ?? 0) +
+  (repairNumber(input.electricalAmount) ?? 0) +
+  (repairNumber(input.structuralAmount) ?? 0) +
+  (repairNumber(input.interiorAmount) ?? 0) +
+  (repairNumber(input.exteriorAmount) ?? 0) +
+  (repairNumber(input.landscapingAmount) ?? 0) +
+  (repairNumber(input.appliancesAmount) ?? 0) +
+  (repairNumber(input.otherAmount) ?? 0);
+    
     const { data: asset, error: assetError } =
       await supabase
         .from("reo_assets")
