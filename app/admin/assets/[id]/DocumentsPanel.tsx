@@ -115,27 +115,36 @@ export default async function DocumentsPanel({
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h2 className="text-2xl font-bold">
-            Documents
-          </h2>
+     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+  <div>
+    <h2 className="text-2xl font-bold">
+      Documents
+    </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
-            Central asset document repository,
-            including invoices, vendor records,
-            work-order documents, reports, and
-            transaction files.
-          </p>
-        </div>
+    <p className="mt-1 text-sm text-slate-500">
+      Central asset document repository,
+      including invoices, vendor records,
+      work-order documents, reports, and
+      transaction files.
+    </p>
+  </div>
 
-        <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-2.5 text-sm font-semibold text-green-400">
-          {documents.length}{" "}
-          {documents.length === 1
-            ? "Document"
-            : "Documents"}
-        </div>
-      </div>
+  <div className="flex flex-wrap items-center gap-3">
+    <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-2.5 text-sm font-semibold text-green-400">
+      {documents.length}{" "}
+      {documents.length === 1
+        ? "Document"
+        : "Documents"}
+    </div>
+
+    <Link
+      href={`/admin/assets/${assetId}/documents/new`}
+      className="inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-400"
+    >
+      Upload Document
+    </Link>
+  </div>
+</div> 
 
       {/* DOCUMENT METRICS */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
