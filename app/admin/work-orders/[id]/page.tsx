@@ -186,11 +186,11 @@ export default async function WorkOrderDetailPage({
     assetResult,
     vendorResult,
   ] = await Promise.all([
-    supabase
-      .from("reo_assets")
-      .select(
-        "id, property_address, city, state, zip_code, workflow_stage, status"
-      )
+   supabase
+  .from("reo_assets")
+  .select(
+    "id, property_address, city, state, workflow_stage, status"
+  )
       .eq(
         "id",
         workOrder.asset_id
@@ -353,15 +353,15 @@ export default async function WorkOrderDetailPage({
                   }
                   label="Location"
                   value={
-                    [
-                      asset.city,
-                      asset.state,
-                      asset.zip_code,
-                    ]
-                      .filter(Boolean)
-                      .join(", ") ||
-                    "Not provided"
-                  }
+                 value={
+  [
+    asset.city,
+    asset.state,
+  ]
+    .filter(Boolean)
+    .join(", ") ||
+  "Not provided"
+}
                 />
 
                 <InfoRow
