@@ -16,6 +16,7 @@ import ClosingPanel from "./ClosingPanel";
 import DispositionPanel from "./DispositionPanel";
 import ExpensesPanel from "./ExpensesPanel";
 import DocumentsPanel from "./DocumentsPanel";
+import InvoiceControlPanel from "./InvoiceControlPanel";
 import {
   AlertTriangle,
   ArrowLeft,
