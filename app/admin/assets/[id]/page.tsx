@@ -156,6 +156,7 @@ const workspaceSections = [
   ["work-orders", "Work Orders", Wrench],
   ["vendors", "Vendors", Users],
   ["documents", "Documents", FileText],
+  ["invoice-control", "Invoice Control", Banknote],
   ["expenses", "Expenses", Receipt],
   ["communications", "Communications", MessageSquare],
   ["activity", "Activity History", Clock3],
@@ -997,6 +998,14 @@ const totalFinalCost =
     />
   </section>
 )}
+
+{activeTab === "invoice-control" && (
+  <section className="mt-6">
+    <InvoiceControlPanel
+      assetId={asset.id}
+    />
+  </section>
+)}        
         
 {activeTab === "expenses" && (
   <section className="mt-6">
