@@ -162,6 +162,7 @@ export async function uploadAssetDocument(
       vendor_id: vendorId,
       document_type: documentType,
       file_name: fileName,
+      document_name: fileName,
       storage_bucket:
         "reo-documents",
       storage_path: storagePath,
