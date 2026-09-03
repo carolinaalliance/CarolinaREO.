@@ -166,6 +166,7 @@ export async function uploadAssetDocument(
       storage_bucket:
         "reo-documents",
       storage_path: storagePath,
+      file_path: storagePath,
       mime_type: file.type,
       file_size: file.size,
       notes,
