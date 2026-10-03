@@ -6,6 +6,7 @@ import OccupancyPanel from "./OccupancyPanel";
 import InspectionPanel from "./InspectionPanel";
 import SecuringPanel from "./SecuringPanel";
 import BpoPanel from "./BpoPanel";
+import EvaluationPanel from "./EvaluationPanel";
 import PreservationPanel from "./PreservationPanel";
 import RepairPanel from "./RepairPanel";
 import PreMarketingPanel from "./PreMarketingPanel";
@@ -714,7 +715,25 @@ const totalFinalCost =
       }
     />
   </section>
-)}    
+)}  
+
+ {activeTab === "evaluation" && (
+  <section className="mt-6">
+    <EvaluationPanel
+      assetId={asset.id}
+      propertyAddress={asset.property_address}
+      city={asset.city}
+      state={asset.state}
+      postalCode={asset.postal_code}
+      county={asset.county}
+      propertyType={asset.property_type}
+      squareFeet={asset.square_feet}
+      acreage={asset.acreage}
+      yearBuilt={asset.year_built}
+      occupancyStatus={asset.occupancy_status}
+    />
+  </section>
+)}       
 
 {activeTab === "work-orders" && (
   <section className="mt-6 space-y-6">
