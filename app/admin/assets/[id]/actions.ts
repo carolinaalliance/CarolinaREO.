@@ -4011,3 +4011,597 @@ export async function saveOffer(
     };
   }
 }
+
+
+// =========================================================
+// PROPERTY EVALUATION & BID ANALYSIS
+// =========================================================
+
+export type EvaluationInput = {
+  inspectionDate: string;
+
+  occupancyStatus: string;
+  propertyType: string;
+  approximateSqft: string;
+  acreage: string;
+  yearBuilt: string;
+
+  exteriorCondition: string;
+  marketability: string;
+  neighborhoodCondition: string;
+  accessCondition: string;
+  exteriorNotes: string;
+
+  estimatedAsIsValue: string;
+  estimatedRepairedValue: string;
+  estimatedRepairsLow: string;
+  estimatedRepairsHigh: string;
+  estimatedMarketingDays: string;
+
+  comparableSale1Address: string;
+  comparableSale1Price: string;
+  comparableSale1Distance: string;
+
+  comparableSale2Address: string;
+  comparableSale2Price: string;
+  comparableSale2Distance: string;
+
+  comparableSale3Address: string;
+  comparableSale3Price: string;
+  comparableSale3Distance: string;
+
+  marketComments: string;
+
+  estimatedRetailValue: string;
+  estimatedDispositionCosts: string;
+  knownTaxesLiensCosts: string;
+  desiredInvestorMargin: string;
+  openingBid: string;
+  recommendedMaxBid: string;
+
+  bidRecommendation: string;
+
+  riskFlags: string[];
+
+  acquisitionComments: string;
+  opportunityRating: string;
+};
+
+function evaluationNumber(
+  value: string | null | undefined
+) {
+  if (!value?.trim()) return null;
+
+  const parsed = Number(
+    value.replace(/[$,]/g, "")
+  );
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
+}
+
+export async function getAssetEvaluation(
+  assetId: string
+) {
+  try {
+    const supabase = getSupabase();
+
+    if (!assetId) {
+      return {
+        success: false,
+        error: "Asset ID is missing.",
+        evaluation: null,
+      };
+    }
+
+    const {
+      data: evaluation,
+      error,
+    } = await supabase
+      .from("asset_evaluations")
+      .select("*")
+      .eq("asset_id", assetId)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      success: true,
+      evaluation,
+    };
+  } catch (error) {
+    console.error(
+      "CAROLINA REO GET EVALUATION ERROR:",
+      error
+    );
+
+    return {
+      success: false,
+      evaluation: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to load evaluation.",
+    };
+  }
+}
+
+export async function saveAssetEvaluationDraft(
+  assetId: string,
+  input: EvaluationInput
+) {
+  try {
+    const supabase = getSupabase();
+
+    if (!assetId) {
+      return {
+        success: false,
+        error: "Asset ID is missing.",
+      };
+    }
+
+    const now = new Date().toISOString();
+
+    const {
+      data: evaluation,
+      error,
+    } = await supabase
+      .from("asset_evaluations")
+      .upsert(
+        {
+          asset_id: assetId,
+
+          status: "draft",
+
+          inspection_date:
+            input.inspectionDate || null,
+
+          occupancy_status:
+            input.occupancyStatus || null,
+
+          property_type:
+            input.propertyType || null,
+
+          approximate_sqft:
+            evaluationNumber(
+              input.approximateSqft
+            ),
+
+          acreage:
+            evaluationNumber(
+              input.acreage
+            ),
+
+          year_built:
+            evaluationNumber(
+              input.yearBuilt
+            ),
+
+          exterior_condition:
+            input.exteriorCondition || null,
+
+          marketability:
+            input.marketability || null,
+
+          neighborhood_condition:
+            input.neighborhoodCondition || null,
+
+          access_condition:
+            input.accessCondition || null,
+
+          exterior_notes:
+            input.exteriorNotes || null,
+
+          estimated_as_is_value:
+            evaluationNumber(
+              input.estimatedAsIsValue
+            ),
+
+          estimated_repaired_value:
+            evaluationNumber(
+              input.estimatedRepairedValue
+            ),
+
+          estimated_repairs_low:
+            evaluationNumber(
+              input.estimatedRepairsLow
+            ),
+
+          estimated_repairs_high:
+            evaluationNumber(
+              input.estimatedRepairsHigh
+            ),
+
+          estimated_marketing_days:
+            evaluationNumber(
+              input.estimatedMarketingDays
+            ),
+
+          comparable_sale_1_address:
+            input.comparableSale1Address ||
+            null,
+
+          comparable_sale_1_price:
+            evaluationNumber(
+              input.comparableSale1Price
+            ),
+
+          comparable_sale_1_distance:
+            input.comparableSale1Distance ||
+            null,
+
+          comparable_sale_2_address:
+            input.comparableSale2Address ||
+            null,
+
+          comparable_sale_2_price:
+            evaluationNumber(
+              input.comparableSale2Price
+            ),
+
+          comparable_sale_2_distance:
+            input.comparableSale2Distance ||
+            null,
+
+          comparable_sale_3_address:
+            input.comparableSale3Address ||
+            null,
+
+          comparable_sale_3_price:
+            evaluationNumber(
+              input.comparableSale3Price
+            ),
+
+          comparable_sale_3_distance:
+            input.comparableSale3Distance ||
+            null,
+
+          market_comments:
+            input.marketComments || null,
+
+          estimated_retail_value:
+            evaluationNumber(
+              input.estimatedRetailValue
+            ),
+
+          estimated_disposition_costs:
+            evaluationNumber(
+              input.estimatedDispositionCosts
+            ),
+
+          known_taxes_liens_costs:
+            evaluationNumber(
+              input.knownTaxesLiensCosts
+            ),
+
+          desired_investor_margin:
+            evaluationNumber(
+              input.desiredInvestorMargin
+            ),
+
+          opening_bid:
+            evaluationNumber(
+              input.openingBid
+            ),
+
+          recommended_max_bid:
+            evaluationNumber(
+              input.recommendedMaxBid
+            ),
+
+          bid_recommendation:
+            input.bidRecommendation || null,
+
+          risk_flags:
+            input.riskFlags || [],
+
+          acquisition_comments:
+            input.acquisitionComments || null,
+
+          opportunity_rating:
+            evaluationNumber(
+              input.opportunityRating
+            ),
+
+          updated_at: now,
+        },
+        {
+          onConflict: "asset_id",
+        }
+      )
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    revalidatePath(
+      `/admin/assets/${assetId}`
+    );
+
+    return {
+      success: true,
+      evaluation,
+    };
+  } catch (error) {
+    console.error(
+      "CAROLINA REO SAVE EVALUATION ERROR:",
+      error
+    );
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to save evaluation.",
+    };
+  }
+}
+
+export async function submitAssetEvaluationForReview(
+  assetId: string,
+  input: EvaluationInput
+) {
+  try {
+    const supabase = getSupabase();
+
+    if (!assetId) {
+      return {
+        success: false,
+        error: "Asset ID is missing.",
+      };
+    }
+
+    if (!input.estimatedAsIsValue) {
+      return {
+        success: false,
+        error:
+          "Estimated As-Is Value is required before submission.",
+      };
+    }
+
+    if (!input.recommendedMaxBid) {
+      return {
+        success: false,
+        error:
+          "Recommended Maximum Bid is required before submission.",
+      };
+    }
+
+    if (!input.bidRecommendation) {
+      return {
+        success: false,
+        error:
+          "Bid Recommendation is required before submission.",
+      };
+    }
+
+    const now = new Date().toISOString();
+
+    const {
+      data: evaluation,
+      error,
+    } = await supabase
+      .from("asset_evaluations")
+      .upsert(
+        {
+          asset_id: assetId,
+
+          status: "submitted",
+
+          inspection_date:
+            input.inspectionDate || null,
+
+          occupancy_status:
+            input.occupancyStatus || null,
+
+          property_type:
+            input.propertyType || null,
+
+          approximate_sqft:
+            evaluationNumber(
+              input.approximateSqft
+            ),
+
+          acreage:
+            evaluationNumber(
+              input.acreage
+            ),
+
+          year_built:
+            evaluationNumber(
+              input.yearBuilt
+            ),
+
+          exterior_condition:
+            input.exteriorCondition || null,
+
+          marketability:
+            input.marketability || null,
+
+          neighborhood_condition:
+            input.neighborhoodCondition || null,
+
+          access_condition:
+            input.accessCondition || null,
+
+          exterior_notes:
+            input.exteriorNotes || null,
+
+          estimated_as_is_value:
+            evaluationNumber(
+              input.estimatedAsIsValue
+            ),
+
+          estimated_repaired_value:
+            evaluationNumber(
+              input.estimatedRepairedValue
+            ),
+
+          estimated_repairs_low:
+            evaluationNumber(
+              input.estimatedRepairsLow
+            ),
+
+          estimated_repairs_high:
+            evaluationNumber(
+              input.estimatedRepairsHigh
+            ),
+
+          estimated_marketing_days:
+            evaluationNumber(
+              input.estimatedMarketingDays
+            ),
+
+          comparable_sale_1_address:
+            input.comparableSale1Address ||
+            null,
+
+          comparable_sale_1_price:
+            evaluationNumber(
+              input.comparableSale1Price
+            ),
+
+          comparable_sale_1_distance:
+            input.comparableSale1Distance ||
+            null,
+
+          comparable_sale_2_address:
+            input.comparableSale2Address ||
+            null,
+
+          comparable_sale_2_price:
+            evaluationNumber(
+              input.comparableSale2Price
+            ),
+
+          comparable_sale_2_distance:
+            input.comparableSale2Distance ||
+            null,
+
+          comparable_sale_3_address:
+            input.comparableSale3Address ||
+            null,
+
+          comparable_sale_3_price:
+            evaluationNumber(
+              input.comparableSale3Price
+            ),
+
+          comparable_sale_3_distance:
+            input.comparableSale3Distance ||
+            null,
+
+          market_comments:
+            input.marketComments || null,
+
+          estimated_retail_value:
+            evaluationNumber(
+              input.estimatedRetailValue
+            ),
+
+          estimated_disposition_costs:
+            evaluationNumber(
+              input.estimatedDispositionCosts
+            ),
+
+          known_taxes_liens_costs:
+            evaluationNumber(
+              input.knownTaxesLiensCosts
+            ),
+
+          desired_investor_margin:
+            evaluationNumber(
+              input.desiredInvestorMargin
+            ),
+
+          opening_bid:
+            evaluationNumber(
+              input.openingBid
+            ),
+
+          recommended_max_bid:
+            evaluationNumber(
+              input.recommendedMaxBid
+            ),
+
+          bid_recommendation:
+            input.bidRecommendation || null,
+
+          risk_flags:
+            input.riskFlags || [],
+
+          acquisition_comments:
+            input.acquisitionComments || null,
+
+          opportunity_rating:
+            evaluationNumber(
+              input.opportunityRating
+            ),
+
+          submitted_at: now,
+          updated_at: now,
+        },
+        {
+          onConflict: "asset_id",
+        }
+      )
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    const { error: activityError } =
+      await supabase
+        .from("reo_asset_activity")
+        .insert({
+          asset_id: assetId,
+
+          activity_type:
+            "property_evaluation_submitted",
+
+          title:
+            "Property Evaluation Submitted",
+
+          description:
+            "Property evaluation and bid analysis submitted for broker review.",
+
+          client_visible: false,
+        });
+
+    if (activityError) {
+      throw activityError;
+    }
+
+    revalidatePath(
+      `/admin/assets/${assetId}`
+    );
+
+    revalidatePath("/admin");
+
+    return {
+      success: true,
+      evaluation,
+    };
+  } catch (error) {
+    console.error(
+      "CAROLINA REO SUBMIT EVALUATION ERROR:",
+      error
+    );
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to submit evaluation.",
+    };
+  }
+}
