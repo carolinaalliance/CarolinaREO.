@@ -4081,6 +4081,27 @@ function evaluationNumber(
     : null;
 }
 
+function evaluationBidRecommendation(
+  value: string | null | undefined
+) {
+  switch (value) {
+    case "Strong Pursuit":
+      return "strong_pursuit";
+
+    case "Pursue Within Range":
+      return "pursue_within_range";
+
+    case "Conservative Bid Only":
+      return "conservative_bid_only";
+
+    case "Do Not Recommend":
+      return "do_not_recommend";
+
+    default:
+      return null;
+  }
+}
+
 export async function getAssetEvaluation(
   assetId: string
 ) {
@@ -4293,7 +4314,9 @@ export async function saveAssetEvaluationDraft(
             ),
 
           bid_recommendation:
-            input.bidRecommendation || null,
+            evaluationBidRecommendation(
+               input.bidRecommendation
+            ),
 
           risk_flags:
             input.riskFlags || [],
@@ -4531,7 +4554,9 @@ export async function submitAssetEvaluationForReview(
             ),
 
           bid_recommendation:
-            input.bidRecommendation || null,
+            evaluationBidRecommendation(
+              input.bidRecommendation
+            ),
 
           risk_flags:
             input.riskFlags || [],
