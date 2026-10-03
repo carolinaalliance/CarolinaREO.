@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import TaskCompleteButton from "./TaskCompleteButton";
+import AssignmentPanel from "./AssignmentPanel";
 import OccupancyPanel from "./OccupancyPanel";
 import InspectionPanel from "./InspectionPanel";
 import SecuringPanel from "./SecuringPanel";
@@ -576,6 +577,50 @@ const totalFinalCost =
         </section>
 
         {/* MAIN WORKSPACE GRID */}
+
+        {activeTab === "assignment" && (
+  <section className="mt-6">
+    <AssignmentPanel
+      assetId={asset.id}
+      propertyAddress={asset.property_address}
+      city={asset.city}
+      state={asset.state}
+      postalCode={asset.postal_code}
+      assetNumber={asset.asset_number}
+      clientAssetNumber={asset.client_asset_number}
+      loanNumber={asset.loan_number}
+      clientName={client?.institution_name}
+      assetManagerName={
+        asset.asset_manager_name ||
+        client?.primary_contact_name
+      }
+      assetManagerEmail={
+        asset.asset_manager_email ||
+        client?.primary_contact_email
+      }
+      assetManagerPhone={
+        asset.asset_manager_phone ||
+        client?.primary_contact_phone
+      }
+      assignmentDate={asset.assignment_date}
+      assignmentStatus={asset.assignment_status}
+      assignmentSentAt={asset.assignment_sent_at}
+      assignmentAcceptedAt={
+        asset.assignment_accepted_at
+      }
+      assignmentDeclinedAt={
+        asset.assignment_declined_at
+      }
+      assignmentDeclineReason={
+        asset.assignment_decline_reason
+      }
+      assignmentInstructions={
+        asset.assignment_instructions
+      }
+    />
+  </section>
+)}
+        
         {activeTab === "occupancy" && (
   <section className="mt-6">
     <OccupancyPanel
