@@ -58,6 +58,27 @@ function valueString(value: unknown) {
   return String(value);
 }
 
+function displayBidRecommendation(
+  value: string | null | undefined
+) {
+  switch (value) {
+    case "strong_pursuit":
+      return "Strong Pursuit";
+
+    case "pursue_within_range":
+      return "Pursue Within Range";
+
+    case "conservative_bid_only":
+      return "Conservative Bid Only";
+
+    case "do_not_recommend":
+      return "Do Not Recommend";
+
+    default:
+      return value || "";
+  }
+}
+
 function todayString() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -336,8 +357,9 @@ export default function EvaluationPanel({
             ),
 
           bidRecommendation:
-            evaluation.bid_recommendation ||
-            "",
+            displayBidRecommendation(
+               evaluation.bid_recommendation 
+            ),
 
           riskFlags:
             Array.isArray(
