@@ -4,6 +4,64 @@ import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
+
+async function verifyTurnstile(
+  token: string
+): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+
+  if (!secret || !token) {
+    return false;
+  }
+
+  try {
+    const response = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          secret,
+          response: token,
+        }),
+        signal: AbortSignal.timeout(10000),
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const result: {
+      success?: boolean;
+      hostname?: string;
+      action?: string;
+    } = await response.json();
+
+    const expectedHostname =
+      process.env.TURNSTILE_EXPECTED_HOSTNAME ||
+      "carolina-reo.vercel.app";
+
+    return (
+      result.success === true &&
+      result.hostname === expectedHostname
+    );
+  } catch (error) {
+    console.error(
+      "Turnstile verification failed:",
+      error instanceof Error
+        ? error.message
+        : "Unknown error"
+    );
+
+    return false;
+  }
+}
+
 const MAX_BODY_BYTES = 16000;
 
 function respond(
@@ -261,6 +319,29 @@ export async function POST(request: NextRequest) {
         400
       );
     }
+
+    const turnstileToken = cleanText(
+      body.turnstileToken,
+      4096
+    );
+
+    if (!turnstileToken) {
+      return respond(
+        "Please complete the security verification.",
+        400
+      );
+    }
+
+    const turnstileVerified =
+      await verifyTurnstile(turnstileToken);
+
+    if (!turnstileVerified) {
+      return respond(
+        "Security verification failed. Please try again.",
+        403
+      );
+    }
+
 
     // Registration remains closed until persistent
     // rate limiting and bot protection are configured.
