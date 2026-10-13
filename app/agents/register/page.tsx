@@ -135,19 +135,87 @@ const [submitSuccess, setSubmitSuccess] = useState("");
       [name]: value,
     }));
   }
-
-  async function handleSubmit(
+  
+async function handleSubmit(
   event: FormEvent<HTMLFormElement>
 ) {
   event.preventDefault();
 
-  // Registration remains closed until server-side
-  // bot protection and rate limiting are configured.
-  // This prevents accidental public submissions.
-  alert(
-    "Carolina REO Agent Registration is being finalized. " +
-    "Applications will open soon."
-  );
+  if (submitting) return;
+
+  setSubmitError("");
+  setSubmitSuccess("");
+
+  if (!confirmed) {
+    setSubmitError(
+      "Please confirm the application acknowledgment."
+    );
+    return;
+  }
+
+  const formElement = event.currentTarget;
+
+  const turnstileToken =
+    (
+      formElement.elements.namedItem(
+        "cf-turnstile-response"
+      ) as HTMLInputElement | null
+    )?.value || "";
+
+  if (!turnstileToken) {
+    setSubmitError(
+      "Please complete the Cloudflare security verification."
+    );
+    return;
+  }
+
+  setSubmitting(true);
+
+  try {
+    const response = await fetch(
+      "/api/agents/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...form,
+          confirmed,
+          turnstileToken,
+          website: "",
+        }),
+      }
+    );
+
+    const result: {
+      success?: boolean;
+      message?: string;
+      error?: string;
+    } = await response.json();
+
+    if (!response.ok || !result.success) {
+      setSubmitError(
+        result.error ||
+          "Unable to submit your application."
+      );
+      return;
+    }
+
+    setSubmitSuccess(
+      result.message ||
+        "Your application was received successfully."
+    );
+
+    setForm(initialForm);
+    setConfirmed(false);
+  } catch {
+    setSubmitError(
+      "A connection error occurred. Please try again."
+    );
+  } finally {
+    setSubmitting(false);
+  }
 }
 
   return (
