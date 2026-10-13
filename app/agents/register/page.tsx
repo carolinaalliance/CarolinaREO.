@@ -121,6 +121,10 @@ function SectionHeader({
 export default function AgentRegistrationPage() {
   const [form, setForm] = useState<AgentForm>(initialForm);
   const [confirmed, setConfirmed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+const [submitError, setSubmitError] = useState("");
+const [submitSuccess, setSubmitSuccess] = useState("");
+
 
   function updateField(
     name: keyof AgentForm,
