@@ -162,6 +162,19 @@ function isValidEmail(email: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    
+ // Registration remains closed until persistent
+// rate limiting and bot protection are configured.
+// Do not remove this guard for public launch.
+if (
+  process.env.REO_AGENT_REGISTRATION_ENABLED !==
+  "true"
+) {
+  return respond(
+    "Agent registration is not accepting applications yet.",
+    503
+  );
+} 
     const contentType =
       request.headers.get("content-type") || "";
 
@@ -339,20 +352,6 @@ export async function POST(request: NextRequest) {
       return respond(
         "Security verification failed. Please try again.",
         403
-      );
-    }
-
-
-    // Registration remains closed until persistent
-    // rate limiting and bot protection are configured.
-    // Do not remove this guard for public launch.
-    if (
-      process.env.REO_AGENT_REGISTRATION_ENABLED !==
-      "true"
-    ) {
-      return respond(
-        "Agent registration is not accepting applications yet.",
-        503
       );
     }
 
