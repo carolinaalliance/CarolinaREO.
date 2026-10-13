@@ -2,6 +2,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Script from "next/script";
+
+const turnstileSiteKey =
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
 type AgentForm = {
   full_name: string;
@@ -454,6 +458,27 @@ export default function AgentRegistrationPage() {
                 be activated after the server-side handler
                 and database protections are connected.
               </p>
+              
+{turnstileSiteKey ? (
+  <div className="mt-5">
+    <p className="mb-3 text-sm text-slate-300">
+      Security Verification
+    </p>
+    <Script
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+      strategy="afterInteractive"
+    />
+    <div
+      className="cf-turnstile"
+      data-sitekey={turnstileSiteKey}
+      data-theme="dark"
+    />
+  </div>
+) : (
+  <p className="mt-5 text-sm text-amber-300">
+    Security verification is not configured.
+  </p>
+)}
 
               <button
                 type="submit"
