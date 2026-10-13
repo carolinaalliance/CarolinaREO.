@@ -552,6 +552,24 @@ async function handleSubmit(
   </p>
 )}
 
+{submitError && (
+  <div
+    role="alert"
+    className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300"
+  >
+    {submitError}
+  </div>
+)}
+
+{submitSuccess && (
+  <div
+    role="status"
+    className="mt-5 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-sm text-green-300"
+  >
+    {submitSuccess}
+  </div>
+)}
+
               <button
                 type="submit"
                 disabled
