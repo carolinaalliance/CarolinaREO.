@@ -128,12 +128,19 @@ export default function AgentRegistrationPage() {
     }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleSubmit(
+  event: FormEvent<HTMLFormElement>
+) {
+  event.preventDefault();
 
-    // The database submission endpoint will be connected
-    // in the next step. Do not collect applications yet.
-  }
+  // Registration remains closed until server-side
+  // bot protection and rate limiting are configured.
+  // This prevents accidental public submissions.
+  alert(
+    "Carolina REO Agent Registration is being finalized. " +
+    "Applications will open soon."
+  );
+}
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
